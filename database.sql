@@ -101,5 +101,5 @@ CREATE TABLE IF NOT EXISTS disputes (
 
 -- Insert Default Admin (Password: admin123)
 INSERT INTO users (username, email, password, role) 
-VALUES ('admin', 'admin@example.com', '$2y$10$U22V4s8uS1I7i4y03L2HauoF8A4/mH3nLp6Lw5M96N21/8X8i4z0y', 'admin')
+VALUES ('admin', 'admin@example.com', '$2y$10$jKSYB8ocgK9MCtHCJAJzaOgfYmrSeHQ4nN7xKhknMOXyjjhtfV3RK', 'admin')
 ON DUPLICATE KEY UPDATE id=id;

@@ -16,11 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_user'])) {
 
 // Fetch Musicians
 $stmt = $conn->query("
-    SELECT u.id, u.username, u.email, m.is_verified, m.created_at
+    SELECT u.id, u.username, u.email, m.is_verified, u.created_at
     FROM users u
     JOIN musician_profiles m ON u.id = m.user_id
     WHERE u.role = 'musician'
-    ORDER BY m.created_at DESC
+    ORDER BY u.created_at DESC
 ");
 $musicians = $stmt->fetchAll();
 ?>
