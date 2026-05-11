@@ -1,0 +1,171 @@
+<?php
+require_once 'includes/db.php';
+session_start();
+
+$musician_id = $_GET['id'] ?? null;
+
+if (!$musician_id) {
+    header("Location: search.php");
+    exit();
+}
+
+// Fetch Musician Data
+$stmt = $conn->prepare("
+    SELECT u.username, m.* 
+    FROM users u 
+    JOIN musician_profiles m ON u.id = m.user_id 
+    WHERE u.id = ? AND u.role = 'musician'
+");
+$stmt->execute([$musician_id]);
+$musician = $stmt->fetch();
+
+if (!$musician) {
+    die("ไม่พบข้อมูลนักดนตรี");
+}
+
+// Fetch Portfolios
+$stmt = $conn->prepare("SELECT * FROM portfolios WHERE musician_id = ? ORDER BY created_at DESC");
+$stmt->execute([$musician_id]);
+$portfolios = $stmt->fetchAll();
+
+// Fetch Reviews
+$stmt = $conn->prepare("
+    SELECT r.rating, r.comment, r.created_at, u.username as employer_name 
+    FROM reviews r 
+    JOIN users u ON r.employer_id = u.id 
+    WHERE r.musician_id = ? 
+    ORDER BY r.created_at DESC LIMIT 5
+");
+$stmt->execute([$musician_id]);
+$reviews = $stmt->fetchAll();
+
+?>
+<?php include 'includes/header.php'; ?>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Profile -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <?php 
+                    $img_src = !empty($musician['profile_image']) && $musician['profile_image'] !== 'default_avatar.png' ? 'uploads/avatars/' . $musician['profile_image'] : 'https://ui-avatars.com/api/?name='.urlencode($musician['username']).'&background=0D8ABC&color=fff';
+                    ?>
+                    <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img mb-3" alt="Profile">
+                    <h3 class="card-title fw-bold"><?php echo htmlspecialchars($musician['username']); ?></h3>
+                    
+                    <div class="star-rating mb-2">
+                        <?php 
+                        $score = $musician['rating_score'];
+                        for ($i = 1; $i <= 5; $i++) {
+                            if ($score >= $i) echo '<i class="fas fa-star"></i>';
+                            else if ($score >= $i - 0.5) echo '<i class="fas fa-star-half-alt"></i>';
+                            else echo '<i class="far fa-star"></i>';
+                        }
+                        ?>
+                        <span class="text-dark ms-1 fw-bold"><?php echo number_format($score, 1); ?></span>
+                    </div>
+                    
+                    <p class="text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i> <?php echo htmlspecialchars($musician['location'] ?: 'ไม่ระบุพื้นที่'); ?></p>
+                    
+                    <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer'): ?>
+                        <a href="booking.php?musician_id=<?php echo $musician['user_id']; ?>" class="btn btn-primary rounded-pill w-100 mt-2 mb-2">
+                            <i class="far fa-calendar-check me-2"></i>จองคิวงาน
+                        </a>
+                    <?php elseif (!isset($_SESSION['user_id'])): ?>
+                        <a href="login.php" class="btn btn-outline-primary rounded-pill w-100 mt-2 mb-2">เข้าสู่ระบบเพื่อจองงาน</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">ข้อมูลพื้นฐาน</h5></div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><strong>ประเภท:</strong> <?php echo $musician['band_type'] === 'solo' ? 'ศิลปินเดี่ยว' : 'วงดนตรี'; ?></li>
+                        <li class="mb-2"><strong>แนวเพลง:</strong> <?php echo htmlspecialchars($musician['genres']); ?></li>
+                        <li class="mb-2"><strong>เรทค่าจ้าง:</strong> <?php echo htmlspecialchars($musician['rate']); ?></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">แนะนำตัว</h5></div>
+                <div class="card-body">
+                    <p><?php echo nl2br(htmlspecialchars($musician['bio'] ?: 'ยังไม่มีข้อมูลแนะนำตัว')); ?></p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">ตารางงานที่ว่าง</h5></div>
+                <div class="card-body">
+                    <p><?php echo nl2br(htmlspecialchars($musician['availability_info'] ?: 'ไม่ได้ระบุ')); ?></p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">ผลงาน</h5></div>
+                <div class="card-body">
+                    <?php if (count($portfolios) > 0): ?>
+                        <div class="row">
+                            <?php foreach ($portfolios as $item): ?>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100 border">
+                                        <div class="card-body p-3">
+                                            <?php if ($item['type'] === 'video'): ?>
+                                                <div class="text-center mb-2">
+                                                    <i class="fab fa-youtube text-danger fa-2x"></i>
+                                                </div>
+                                            <?php elseif ($item['type'] === 'audio'): ?>
+                                                <div class="text-center mb-2">
+                                                    <i class="fab fa-soundcloud text-warning fa-2x"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                            <h6 class="card-title text-truncate"><?php echo htmlspecialchars($item['description']); ?></h6>
+                                            <a href="<?php echo htmlspecialchars($item['link']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mt-2">เปิดดู</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted text-center py-3">ยังไม่มีผลงาน</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Reviews -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">รีวิวจากผู้ว่าจ้าง</h5></div>
+                <div class="card-body">
+                    <?php if (count($reviews) > 0): ?>
+                        <?php foreach ($reviews as $review): ?>
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong class="text-primary"><?php echo htmlspecialchars($review['employer_name']); ?></strong>
+                                    <span class="text-muted small"><?php echo date('d M Y', strtotime($review['created_at'])); ?></span>
+                                </div>
+                                <div class="star-rating mb-2" style="font-size: 0.9rem;">
+                                    <?php 
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        if ($review['rating'] >= $i) echo '<i class="fas fa-star"></i>';
+                                        else echo '<i class="far fa-star"></i>';
+                                    }
+                                    ?>
+                                </div>
+                                <p class="mb-0"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="text-muted text-center py-3">ยังไม่มีรีวิว</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php include 'includes/footer.php'; ?>
