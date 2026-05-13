@@ -1,14 +1,19 @@
 </div> <!-- End main-content -->
     
-    <footer class="footer mt-auto py-4 bg-dark text-white">
+    <footer class="footer mt-auto py-5 border-top border-secondary" style="background-color: #0b0b0f; border-color: #2a2a35 !important;">
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>MuseConnect</h5>
-                    <p class="text-muted">Platform for freelance musicians and employers.</p>
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <h4 class="fw-bold mb-1" style="color: var(--primary-color); font-style: italic; letter-spacing: 1px;">MUSE CONNECT</h4>
+                    <p class="text-secondary small mb-0">Platform for freelance musicians and employers.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-0">&copy; <?php echo date('Y'); ?> MuseConnect. All rights reserved.</p>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 text-secondary small">&copy; <?php echo date('Y'); ?> MuseConnect. All rights reserved.</p>
+                    <div class="mt-2">
+                        <a href="#" class="text-secondary me-3 hover-glow"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-secondary me-3 hover-glow"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-secondary hover-glow"><i class="fab fa-twitter fa-lg"></i></a>
+                    </div>
                 </div>
             </div>
         </div>

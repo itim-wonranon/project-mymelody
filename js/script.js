@@ -1,15 +1,19 @@
-/* js/script.js */
-$(document).ready(function() {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
-    });
+// js/script.js
 
-    // Fade out alerts after 5 seconds
-    setTimeout(function() {
-        $('.alert-dismissible').fadeOut('slow', function() {
-            $(this).remove();
+document.addEventListener('DOMContentLoaded', function() {
+    // Navbar scroll effect
+    const navbar = document.getElementById('mainNav');
+    
+    if (navbar) {
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
         });
-    }, 5000);
+    }
+
+    // Add subtle hover glow effect logic if needed
+    // Currently handled mostly by CSS, but can extend here.
 });

@@ -62,6 +62,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include 'includes/header.php'; ?>
 
+<style>
+.role-selection {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.role-card {
+    flex: 1;
+    background-color: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 24px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.role-card i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.role-card span {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.role-card:hover {
+    border-color: #b6d4fe;
+    background-color: #f8f9fa;
+}
+
+input[type="radio"].role-radio {
+    display: none;
+}
+
+input[type="radio"].role-radio:checked + .role-card {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.05);
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+
+input[type="radio"].role-radio:checked + .role-card i,
+input[type="radio"].role-radio:checked + .role-card span {
+    color: #0d6efd;
+}
+</style>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -84,21 +138,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <?php endif; ?>
 
                     <form method="POST" action="register.php">
-                        <div class="mb-3">
-                            <label class="form-label">สมัครในฐานะ</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="role" id="roleMusician" value="musician" checked>
-                                    <label class="form-check-label" for="roleMusician">
-                                        <i class="fas fa-guitar text-primary"></i> นักดนตรี (รับงาน)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="role" id="roleEmployer" value="employer">
-                                    <label class="form-check-label" for="roleEmployer">
-                                        <i class="fas fa-briefcase text-primary"></i> ผู้ว่าจ้าง (หานักดนตรี)
-                                    </label>
-                                </div>
+                        <div class="mb-4">
+                            <label class="form-label text-muted fw-semibold">สมัครในฐานะ</label>
+                            <div class="role-selection">
+                                <label style="flex:1;">
+                                    <input type="radio" name="role" class="role-radio" value="musician" checked>
+                                    <div class="role-card">
+                                        <i class="fas fa-guitar"></i>
+                                        <span>นักดนตรี (รับงาน)</span>
+                                    </div>
+                                </label>
+                                <label style="flex:1;">
+                                    <input type="radio" name="role" class="role-radio" value="employer">
+                                    <div class="role-card">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>ผู้ว่าจ้าง (หานักดนตรี)</span>
+                                    </div>
+                                </label>
                             </div>
                         </div>
 
