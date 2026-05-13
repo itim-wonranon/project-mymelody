@@ -14,33 +14,20 @@ $error = '';
 
 // Handle Profile Update
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
-    if ($role === 'musician') {
-        $bio = $_POST['bio'] ?? '';
-        $band_type = $_POST['band_type'] ?? 'solo';
-        $genres = $_POST['genres'] ?? '';
-        $rate = $_POST['rate'] ?? '';
-        $location = $_POST['location'] ?? '';
-        $availability_info = $_POST['availability_info'] ?? '';
-
-        $stmt = $conn->prepare("UPDATE musician_profiles SET bio=?, band_type=?, genres=?, rate=?, location=?, availability_info=? WHERE user_id=?");
-        if ($stmt->execute([$bio, $band_type, $genres, $rate, $location, $availability_info, $user_id])) {
-            $success = "อัปเดตโปรไฟล์สำเร็จ";
-        } else {
-            $error = "เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์";
-        }
-    } else if ($role === 'employer') {
-        $company_name = $_POST['company_name'] ?? '';
-        $details = $_POST['details'] ?? '';
-
-        $stmt = $conn->prepare("UPDATE employer_profiles SET company_name=?, details=? WHERE user_id=?");
-        if ($stmt->execute([$company_name, $details, $user_id])) {
-            $success = "อัปเดตโปรไฟล์สำเร็จ";
-        } else {
-            $error = "เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์";
-        }
+    $first_name = trim($_POST['first_name']);
+    $last_name = trim($_POST['last_name']);
+    $phone = trim($_POST['phone']);
+    $email = trim($_POST['email']);
+    
+    // Update Users Table
+    $stmt = $conn->prepare("UPDATE users SET first_name=?, last_name=?, phone=?, email=? WHERE id=?");
+    if ($stmt->execute([$first_name, $last_name, $phone, $email, $user_id])) {
+        $success = "อัปเดตโปรไฟล์ทั่วไปสำเร็จ";
+    } else {
+        $error = "เกิดข้อผิดพลาดในการอัปเดตข้อมูล";
     }
     
-    // Handle Profile Image Upload (simplified, needs directory creation)
+    // Handle Profile Image Upload
     if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == 0) {
         $upload_dir = 'uploads/avatars/';
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
@@ -52,22 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
             $table = ($role === 'musician') ? 'musician_profiles' : 'employer_profiles';
             $stmt = $conn->prepare("UPDATE $table SET profile_image=? WHERE user_id=?");
             $stmt->execute([$filename, $user_id]);
-        }
-    }
-}
-
-// Handle Portfolio Addition (Musician Only)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_portfolio']) && $role === 'musician') {
-    $type = $_POST['portfolio_type'];
-    $link = $_POST['portfolio_link'];
-    $description = $_POST['portfolio_description'] ?? '';
-    
-    if (!empty($link)) {
-        $stmt = $conn->prepare("INSERT INTO portfolios (musician_id, type, link, description) VALUES (?, ?, ?, ?)");
-        if ($stmt->execute([$user_id, $type, $link, $description])) {
-            $success = "เพิ่มผลงานสำเร็จ";
-        } else {
-            $error = "เกิดข้อผิดพลาดในการเพิ่มผลงาน";
+            $_SESSION['profile_image'] = $filename;
         }
     }
 }
@@ -78,17 +50,13 @@ if ($role === 'musician') {
     $stmt = $conn->prepare("SELECT * FROM musician_profiles WHERE user_id = ?");
     $stmt->execute([$user_id]);
     $profile = $stmt->fetch();
-    
-    $stmt = $conn->prepare("SELECT * FROM portfolios WHERE musician_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$user_id]);
-    $portfolios = $stmt->fetchAll();
 } else if ($role === 'employer') {
     $stmt = $conn->prepare("SELECT * FROM employer_profiles WHERE user_id = ?");
     $stmt->execute([$user_id]);
     $profile = $stmt->fetch();
 }
 
-$stmt = $conn->prepare("SELECT username, email FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user_info = $stmt->fetch();
 ?>
@@ -139,52 +107,32 @@ $user_info = $stmt->fetch();
                             <input type="file" class="form-control" name="profile_image" accept="image/*">
                         </div>
 
-                        <?php if ($role === 'musician'): ?>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">ประเภท</label>
-                                    <select class="form-select" name="band_type">
-                                        <option value="solo" <?php echo ($profile['band_type'] == 'solo') ? 'selected' : ''; ?>>ศิลปินเดี่ยว</option>
-                                        <option value="band" <?php echo ($profile['band_type'] == 'band') ? 'selected' : ''; ?>>วงดนตรี</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">แนวเพลงที่ถนัด (คั่นด้วยลูกน้ำ)</label>
-                                    <input type="text" class="form-control" name="genres" value="<?php echo htmlspecialchars($profile['genres'] ?? ''); ?>" placeholder="เช่น Pop, Rock, Jazz">
-                                </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">ชื่อจริง</label>
+                                <input type="text" class="form-control" name="first_name" value="<?php echo htmlspecialchars($user_info['first_name'] ?? ''); ?>" required>
                             </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">เรทค่าจ้าง (เริ่มต้น)</label>
-                                    <input type="text" class="form-control" name="rate" value="<?php echo htmlspecialchars($profile['rate'] ?? ''); ?>" placeholder="เช่น 1,500 บาท/ชม.">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">เขตพื้นที่รับงาน</label>
-                                    <input type="text" class="form-control" name="location" value="<?php echo htmlspecialchars($profile['location'] ?? ''); ?>" placeholder="เช่น กรุงเทพฯ, ปริมณฑล">
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">นามสกุล</label>
+                                <input type="text" class="form-control" name="last_name" value="<?php echo htmlspecialchars($user_info['last_name'] ?? ''); ?>" required>
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">วันเวลาที่ว่าง (โดยสังเขป)</label>
-                                <textarea class="form-control" name="availability_info" rows="2" placeholder="เช่น ว่างทุกวันศุกร์-เสาร์ ช่วงเย็นเป็นต้นไป"><?php echo htmlspecialchars($profile['availability_info'] ?? ''); ?></textarea>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">ชื่อผู้ใช้งาน (Username) - เปลี่ยนไม่ได้</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($user_info['username'] ?? ''); ?>" disabled>
+                        </div>
 
-                            <div class="mb-4">
-                                <label class="form-label">แนะนำตัว / ประวัติ</label>
-                                <textarea class="form-control" name="bio" rows="4"><?php echo htmlspecialchars($profile['bio'] ?? ''); ?></textarea>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">อีเมล</label>
+                                <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($user_info['email'] ?? ''); ?>" required>
                             </div>
-
-                        <?php elseif ($role === 'employer'): ?>
-                            <div class="mb-3">
-                                <label class="form-label">ชื่อบริษัท / ชื่อร้าน / ชื่อผู้จัด</label>
-                                <input type="text" class="form-control" name="company_name" value="<?php echo htmlspecialchars($profile['company_name'] ?? ''); ?>">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">เบอร์โทรศัพท์</label>
+                                <input type="tel" class="form-control" name="phone" value="<?php echo htmlspecialchars($user_info['phone'] ?? ''); ?>" required>
                             </div>
-                            <div class="mb-4">
-                                <label class="form-label">รายละเอียดเพิ่มเติม</label>
-                                <textarea class="form-control" name="details" rows="4"><?php echo htmlspecialchars($profile['details'] ?? ''); ?></textarea>
-                            </div>
-                        <?php endif; ?>
+                        </div>
 
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="fas fa-save me-2"></i>บันทึกข้อมูล</button>
@@ -195,72 +143,10 @@ $user_info = $stmt->fetch();
 
             <!-- Portfolio Section for Musicians -->
             <?php if ($role === 'musician'): ?>
-            <div class="card shadow-sm">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold"><i class="fas fa-photo-video text-primary me-2"></i>ผลงานของฉัน</h5>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="collapse" data-bs-target="#addPortfolioForm">
-                        <i class="fas fa-plus"></i> เพิ่มผลงาน
-                    </button>
+                <div class="mt-4 text-center">
+                    <a href="edit_musician.php" class="btn btn-outline-info rounded-pill px-4 me-2"><i class="fas fa-guitar me-2"></i>แก้ไขข้อมูลศิลปินของคุณ</a>
+                    <a href="portfolio_manager.php" class="btn btn-outline-warning rounded-pill px-4"><i class="fas fa-photo-video me-2"></i>จัดการผลงาน (Portfolio)</a>
                 </div>
-                <div class="card-body">
-                    <!-- Add Portfolio Form -->
-                    <div class="collapse mb-4" id="addPortfolioForm">
-                        <div class="card card-body bg-light">
-                            <form method="POST" action="profile.php">
-                                <input type="hidden" name="add_portfolio" value="1">
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">ประเภท</label>
-                                        <select class="form-select" name="portfolio_type">
-                                            <option value="video">ลิงก์วิดีโอ (YouTube)</option>
-                                            <option value="audio">ลิงก์เสียง (SoundCloud)</option>
-                                            <option value="image">ลิงก์รูปภาพ</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-8 mb-3">
-                                        <label class="form-label">ลิงก์ URL</label>
-                                        <input type="url" class="form-control" name="portfolio_link" required placeholder="https://...">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">คำอธิบาย</label>
-                                    <input type="text" class="form-control" name="portfolio_description" placeholder="เช่น ร้องสดที่ร้าน...">
-                                </div>
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary btn-sm">บันทึกผลงาน</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Portfolio List -->
-                    <?php if (count($portfolios) > 0): ?>
-                        <div class="row">
-                            <?php foreach ($portfolios as $item): ?>
-                                <div class="col-md-6 mb-3">
-                                    <div class="card h-100 border">
-                                        <div class="card-body p-3">
-                                            <?php if ($item['type'] === 'video'): ?>
-                                                <div class="text-center mb-2">
-                                                    <i class="fab fa-youtube text-danger fa-2x"></i>
-                                                </div>
-                                            <?php elseif ($item['type'] === 'audio'): ?>
-                                                <div class="text-center mb-2">
-                                                    <i class="fab fa-soundcloud text-warning fa-2x"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                            <h6 class="card-title text-truncate"><?php echo htmlspecialchars($item['description']); ?></h6>
-                                            <a href="<?php echo htmlspecialchars($item['link']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mt-2">เปิดดู <i class="fas fa-external-link-alt ms-1"></i></a>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <p class="text-muted text-center py-3">ยังไม่มีผลงาน</p>
-                    <?php endif; ?>
-                </div>
-            </div>
             <?php endif; ?>
         </div>
     </div>

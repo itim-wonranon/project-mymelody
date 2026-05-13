@@ -45,18 +45,6 @@ $stmt = $conn->prepare("
 $stmt->execute();
 $active_musicians = $stmt->fetchAll();
 
-// Fetch Recent Promoted Posts
-$stmt = $conn->prepare("
-    SELECT p.content, p.created_at, u.username, u.role, m.profile_image as m_img, e.profile_image as e_img
-    FROM posts p
-    JOIN users u ON p.user_id = u.id
-    LEFT JOIN musician_profiles m ON u.id = m.user_id
-    LEFT JOIN employer_profiles e ON u.id = e.user_id
-    ORDER BY p.created_at DESC
-    LIMIT 6
-");
-$stmt->execute();
-$recent_posts = $stmt->fetchAll();
 ?>
 <?php include 'includes/header.php'; ?>
 
@@ -82,6 +70,17 @@ $recent_posts = $stmt->fetchAll();
 </div>
 
 <div class="container py-5 mt-3">
+    <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer'): ?>
+        <div class="card border-0 shadow-lg mb-5 hover-glow" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 20px;">
+            <div class="card-body p-5 text-center text-white">
+                <h2 class="fw-bold mb-3"><i class="fas fa-guitar fa-lg me-3"></i>คุณคือนักดนตรีใช่ไหม?</h2>
+                <p class="fs-5 mb-4 opacity-75">เพิ่มโอกาสในการรับงานของคุณโดยการสมัครเป็นนักดนตรีบนแพลตฟอร์มของเรา</p>
+                <a href="become_musician.php" class="btn btn-light btn-lg rounded-pill px-5 fw-bold text-primary shadow-sm">
+                    สมัครเป็นนักดนตรีตอนนี้ <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    <?php endif; ?>
     <?php if ($success): ?>
         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
             <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success); ?>
@@ -95,49 +94,12 @@ $recent_posts = $stmt->fetchAll();
         </div>
     <?php endif; ?>
 
-    <!-- Community Showcase -->
-    <div class="mb-5 pb-5 border-bottom border-secondary" style="border-color: #2a2a35 !important;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-white"><i class="fas fa-bullhorn text-primary me-2"></i>Community <span class="text-secondary fs-5 fw-normal ms-2">คอมมูนิตี้และอัปเดตล่าสุด</span></h3>
-            <a href="feed.php" class="btn btn-outline-primary rounded-pill px-4">ดูโพสต์ทั้งหมด</a>
-        </div>
-        
-        <div class="row">
-            <?php if (count($recent_posts) > 0): ?>
-                <?php foreach ($recent_posts as $post): ?>
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 border-secondary shadow-sm hover-glow" style="background: #15151c; transition: all 0.3s ease;">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <?php 
-                                    $img = $post['role'] === 'musician' ? $post['m_img'] : $post['e_img'];
-                                    $img_src = !empty($img) && $img !== 'default_avatar.png' ? 'uploads/avatars/' . $img : 'https://ui-avatars.com/api/?name='.urlencode($post['username']).'&background=00f0ff&color=000';
-                                    ?>
-                                    <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img-small me-3 shadow-sm border border-secondary" alt="Profile">
-                                    <div>
-                                        <h6 class="mb-0 fw-bold text-white text-truncate" style="max-width: 200px;">
-                                            <?php echo htmlspecialchars($post['username']); ?>
-                                            <?php if ($post['role'] === 'musician'): ?>
-                                                <i class="fas fa-music text-primary ms-1" style="font-size: 0.7rem;" title="นักดนตรี"></i>
-                                            <?php endif; ?>
-                                        </h6>
-                                        <small class="text-secondary" style="font-size: 0.75rem;"><i class="far fa-clock me-1"></i><?php echo date('d M Y, H:i', strtotime($post['created_at'])); ?></small>
-                                    </div>
-                                </div>
-                                <p class="card-text text-light opacity-75" style="line-height: 1.6; font-size: 1rem; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"><?php echo nl2br(htmlspecialchars($post['content'])); ?></p>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12 text-center py-5">
-                    <div class="card bg-transparent border-secondary border-dashed text-center p-5">
-                        <p class="text-muted fs-5 mb-0"><i class="far fa-comment-dots me-2"></i>ยังไม่มีโพสต์อัปเดตในคอมมูนิตี้</p>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
     </div>
+
+    <div class="container py-5">
+        <div class="row">
+            <!-- Left Main Content (Artists) -->
+            <div class="col-lg-8 pe-lg-5">
 
     <!-- Artist Category Renderer Function (Inline helper) -->
     <?php
@@ -147,7 +109,7 @@ $recent_posts = $stmt->fetchAll();
             foreach ($musicians as $musician) {
                 $img_src = !empty($musician['profile_image']) && $musician['profile_image'] !== 'default_avatar.png' ? 'uploads/avatars/' . $musician['profile_image'] : 'https://ui-avatars.com/api/?name='.urlencode($musician['username']).'&background=c471ed&color=fff';
                 ?>
-                <div class="col-md-6 col-lg-3 mb-4">
+                <div class="col-md-6 mb-4">
                     <div class="card h-100">
                         <div class="card-body text-center p-4">
                             <div class="position-relative d-inline-block mb-3">
@@ -200,6 +162,13 @@ $recent_posts = $stmt->fetchAll();
     </div>
     <?php renderArtistCards($active_musicians, "ยังไม่มีความเคลื่อนไหวจากศิลปิน"); ?>
 
+            </div> <!-- End Left Main Content -->
+
+            <!-- Right Sidebar (Community) -->
+            <div class="col-lg-4 mt-5 mt-lg-0">
+                <?php include 'includes/home_community.php'; ?>
+            </div>
+        </div> <!-- End Row -->
 </div>
 
 <?php include 'includes/footer.php'; ?>

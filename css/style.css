@@ -254,3 +254,84 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--primary-color);
 }
+
+/* Role Selection (register.php) */
+.role-selection {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.role-card {
+    flex: 1;
+    background-color: var(--card-bg);
+    border: 2px solid #2a2a35;
+    border-radius: 12px;
+    padding: 24px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+}
+.role-card i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: var(--secondary-color);
+    transition: all 0.2s ease;
+}
+.role-card span {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.role-card:hover {
+    border-color: var(--primary-color);
+    background-color: #1e1e2d;
+}
+input[type="radio"].role-radio {
+    display: none;
+}
+input[type="radio"].role-radio:checked + .role-card {
+    border-color: var(--accent-color);
+    background-color: rgba(255, 142, 251, 0.05);
+    box-shadow: 0 0 0 4px rgba(255, 142, 251, 0.1);
+}
+input[type="radio"].role-radio:checked + .role-card i,
+input[type="radio"].role-radio:checked + .role-card span {
+    color: var(--accent-color);
+}
+
+/* Musician Forms (become/edit musician) */
+.musician-form-container {
+    background: #1e1e2d;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid #2a2a35;
+}
+.section-title {
+    color: var(--accent-color);
+    border-bottom: 2px solid #2a2a35;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+    margin-top: 40px;
+}
+.custom-checkbox .form-check-input:checked {
+    background-color: var(--cyan-accent);
+    border-color: var(--cyan-accent);
+}
+.dynamic-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Grid for compact checkboxes */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+}

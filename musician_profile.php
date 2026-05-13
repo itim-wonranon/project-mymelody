@@ -39,6 +39,13 @@ $stmt = $conn->prepare("
 $stmt->execute([$musician_id]);
 $reviews = $stmt->fetchAll();
 
+// Parse JSONs
+$band_data = json_decode($musician['band_members'], true);
+$work_areas = json_decode($musician['work_areas'], true) ?? [];
+$availability_days = json_decode($musician['availability_days'], true) ?? [];
+$availability_times = json_decode($musician['availability_times'], true) ?? [];
+$location_str = empty($work_areas) ? 'ไม่ได้ระบุพื้นที่' : implode(', ', $work_areas);
+
 ?>
 <?php include 'includes/header.php'; ?>
 
@@ -66,7 +73,7 @@ $reviews = $stmt->fetchAll();
                         <span class="text-dark ms-1 fw-bold"><?php echo number_format($score, 1); ?></span>
                     </div>
                     
-                    <p class="text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i> <?php echo htmlspecialchars($musician['location'] ?: 'ไม่ระบุพื้นที่'); ?></p>
+                    <p class="text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i> <?php echo htmlspecialchars(mb_strimwidth($location_str, 0, 30, "...")); ?></p>
                     
                     <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer'): ?>
                         <a href="booking.php?musician_id=<?php echo $musician['user_id']; ?>" class="btn btn-primary rounded-pill w-100 mt-2 mb-2">
@@ -81,11 +88,42 @@ $reviews = $stmt->fetchAll();
             <div class="card shadow-sm mt-4">
                 <div class="card-header bg-white"><h5 class="mb-0 fw-bold">ข้อมูลพื้นฐาน</h5></div>
                 <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2"><strong>ประเภท:</strong> <?php echo $musician['band_type'] === 'solo' ? 'ศิลปินเดี่ยว' : 'วงดนตรี'; ?></li>
+                        <li class="mb-2"><strong>ประเภท:</strong> 
+                            <?php 
+                            if ($musician['band_type'] === 'solo') echo 'ศิลปินเดี่ยว';
+                            elseif ($musician['band_type'] === 'duo') echo 'ศิลปินคู่';
+                            else echo 'วงดนตรี';
+                            ?>
+                        </li>
                         <li class="mb-2"><strong>แนวเพลง:</strong> <?php echo htmlspecialchars($musician['genres']); ?></li>
-                        <li class="mb-2"><strong>เรทค่าจ้าง:</strong> <?php echo htmlspecialchars($musician['rate']); ?></li>
+                        <li class="mb-2"><strong>เรทค่าจ้าง:</strong> <?php echo htmlspecialchars($musician['rate']); ?> บาท/<?php echo $musician['pricing_type'] == 'hour' ? 'ชั่วโมง' : 'วัน'; ?></li>
+                        
+                        <?php if ($musician['band_type'] === 'solo'): ?>
+                            <li class="mb-2"><strong>อายุ:</strong> <?php echo htmlspecialchars($musician['age']); ?> ปี</li>
+                            <li class="mb-2"><strong>เครื่องดนตรีที่ถนัด:</strong> <?php echo htmlspecialchars($musician['instruments']); ?></li>
+                        <?php endif; ?>
                     </ul>
+                </div>
+            </div>
+
+            <?php if ($musician['band_type'] !== 'solo' && !empty($band_data['members'])): ?>
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white"><h5 class="mb-0 fw-bold">สมาชิกวง: <?php echo htmlspecialchars($band_data['band_name'] ?? ''); ?></h5></div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <?php foreach ($band_data['members'] as $m): ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-user-circle text-muted me-2"></i><strong><?php echo htmlspecialchars($m['name']); ?></strong> 
+                                <small class="text-muted ms-2">(<?php echo htmlspecialchars($m['age']); ?> ปี)</small>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill"><?php echo htmlspecialchars($m['instrument']); ?></span>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+            <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -102,7 +140,48 @@ $reviews = $stmt->fetchAll();
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white"><h5 class="mb-0 fw-bold">ตารางงานที่ว่าง</h5></div>
                 <div class="card-body">
-                    <p><?php echo nl2br(htmlspecialchars($musician['availability_info'] ?: 'ไม่ได้ระบุ')); ?></p>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="fw-bold text-primary"><i class="fas fa-calendar-day me-2"></i>ตารางวันและเวลารับงาน</h6>
+                            <ul class="list-unstyled ps-4">
+                                <?php 
+                                $days_mapping = [
+                                    'Monday' => 'วันจันทร์', 'Tuesday' => 'วันอังคาร', 'Wednesday' => 'วันพุธ', 
+                                    'Thursday' => 'วันพฤหัสบดี', 'Friday' => 'วันศุกร์', 'Saturday' => 'วันเสาร์', 'Sunday' => 'วันอาทิตย์'
+                                ];
+                                if(empty($availability_days)): ?>
+                                    <li><i class="fas fa-minus text-muted me-2"></i>ไม่ได้ระบุ</li>
+                                <?php else: ?>
+                                    <?php 
+                                    // Check if it's the old format (array of strings) or new format (associative array)
+                                    $is_new_format = false;
+                                    foreach($availability_days as $key => $val) {
+                                        if(is_array($val)) { $is_new_format = true; break; }
+                                    }
+
+                                    if ($is_new_format) {
+                                        foreach($availability_days as $en_day => $time): 
+                                            $th_day = $days_mapping[$en_day] ?? $en_day;
+                                            $time_str = ($time['start'] && $time['end']) ? $time['start'] . ' - ' . $time['end'] . ' น.' : 'ไม่ได้ระบุเวลา';
+                                        ?>
+                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong><?php echo $th_day; ?>:</strong> <span class="text-info"><?php echo htmlspecialchars($time_str); ?></span></li>
+                                        <?php endforeach; 
+                                    } else {
+                                        // Old format fallback
+                                        foreach($availability_days as $day): ?>
+                                            <li><i class="fas fa-check text-success me-2"></i><?php echo htmlspecialchars($day); ?></li>
+                                        <?php endforeach;
+                                    }
+                                    ?>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </div>
+                    <?php if(!empty($musician['availability_info'])): ?>
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <strong>หมายเหตุเพิ่มเติม: </strong> <?php echo nl2br(htmlspecialchars($musician['availability_info'])); ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -114,18 +193,23 @@ $reviews = $stmt->fetchAll();
                             <?php foreach ($portfolios as $item): ?>
                                 <div class="col-md-6 mb-3">
                                     <div class="card h-100 border">
-                                        <div class="card-body p-3">
-                                            <?php if ($item['type'] === 'video'): ?>
-                                                <div class="text-center mb-2">
-                                                    <i class="fab fa-youtube text-danger fa-2x"></i>
-                                                </div>
-                                            <?php elseif ($item['type'] === 'audio'): ?>
-                                                <div class="text-center mb-2">
-                                                    <i class="fab fa-soundcloud text-warning fa-2x"></i>
+                                        <div class="card-body p-0">
+                                            <?php if ($item['type'] === 'image'): ?>
+                                                <img src="uploads/portfolios/<?php echo htmlspecialchars($item['link']); ?>" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Portfolio">
+                                            <?php elseif ($item['type'] === 'video'): ?>
+                                                <video src="uploads/portfolios/<?php echo htmlspecialchars($item['link']); ?>" class="card-img-top" style="height: 200px; object-fit: cover; background:#000;" controls></video>
+                                            <?php elseif ($item['type'] === 'link'): ?>
+                                                <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary" style="height: 200px;">
+                                                    <i class="fas fa-link fa-4x text-light opacity-50"></i>
                                                 </div>
                                             <?php endif; ?>
-                                            <h6 class="card-title text-truncate"><?php echo htmlspecialchars($item['description']); ?></h6>
-                                            <a href="<?php echo htmlspecialchars($item['link']); ?>" target="_blank" class="btn btn-sm btn-outline-secondary w-100 mt-2">เปิดดู</a>
+                                            
+                                            <div class="p-3">
+                                                <h6 class="card-title text-truncate mb-2"><?php echo htmlspecialchars($item['description'] ?: 'ไม่มีคำอธิบาย'); ?></h6>
+                                                <?php if ($item['type'] === 'link'): ?>
+                                                    <a href="<?php echo htmlspecialchars($item['link']); ?>" target="_blank" class="btn btn-sm btn-outline-primary w-100">เปิดลิงก์ <i class="fas fa-external-link-alt ms-1"></i></a>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
