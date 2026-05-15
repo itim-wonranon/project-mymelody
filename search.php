@@ -8,7 +8,7 @@ $price_max = $_GET['price_max'] ?? '';
 $rating_min = $_GET['rating_min'] ?? '';
 
 $sql = "
-    SELECT u.id as user_id, u.username, m.profile_image, m.band_type, m.genres, m.rate, m.location, m.rating_score
+    SELECT u.id as user_id, u.username, u.first_name, u.last_name, m.profile_image, m.band_type, m.band_members, m.genres, m.rate, m.location, m.rating_score
     FROM users u
     JOIN musician_profiles m ON u.id = m.user_id
     WHERE u.role = 'musician' AND m.is_verified = 1
@@ -99,7 +99,20 @@ $results = $stmt->fetchAll();
                                     $img_src = !empty($musician['profile_image']) && $musician['profile_image'] !== 'default_avatar.png' ? 'uploads/avatars/' . $musician['profile_image'] : 'https://ui-avatars.com/api/?name='.urlencode($musician['username']).'&background=0D8ABC&color=fff';
                                     ?>
                                     <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img mb-3" alt="Profile">
-                                    <h5 class="card-title fw-bold"><?php echo htmlspecialchars($musician['username']); ?></h5>
+                                    <?php 
+                                    $display_name = $musician['username'];
+                                    if ($musician['band_type'] === 'solo') {
+                                        if (!empty($musician['first_name'])) {
+                                            $display_name = $musician['first_name'] . ' ' . $musician['last_name'];
+                                        }
+                                    } else {
+                                        $band_data = json_decode($musician['band_members'], true);
+                                        if (!empty($band_data['band_name'])) {
+                                            $display_name = $band_data['band_name'];
+                                        }
+                                    }
+                                    ?>
+                                    <h5 class="card-title fw-bold"><?php echo htmlspecialchars($display_name); ?></h5>
                                     
                                     <p class="text-muted small mb-1"><i class="fas fa-map-marker-alt text-danger me-1"></i> <?php echo htmlspecialchars($musician['location'] ?: 'ไม่ระบุ'); ?></p>
                                     <p class="text-muted small mb-2"><i class="fas fa-music text-primary me-1"></i> <?php echo htmlspecialchars($musician['genres']); ?></p>

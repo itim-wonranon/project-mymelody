@@ -11,7 +11,7 @@ if (!$musician_id) {
 
 // Fetch Musician Data
 $stmt = $conn->prepare("
-    SELECT u.username, m.* 
+    SELECT u.username, u.first_name, u.last_name, m.* 
     FROM users u 
     JOIN musician_profiles m ON u.id = m.user_id 
     WHERE u.id = ? AND u.role = 'musician'
@@ -59,7 +59,19 @@ $location_str = empty($work_areas) ? 'ไม่ได้ระบุพื้น
                     $img_src = !empty($musician['profile_image']) && $musician['profile_image'] !== 'default_avatar.png' ? 'uploads/avatars/' . $musician['profile_image'] : 'https://ui-avatars.com/api/?name='.urlencode($musician['username']).'&background=0D8ABC&color=fff';
                     ?>
                     <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img mb-3" alt="Profile">
-                    <h3 class="card-title fw-bold"><?php echo htmlspecialchars($musician['username']); ?></h3>
+                    <?php 
+                    $display_name = $musician['username'];
+                    if ($musician['band_type'] === 'solo') {
+                        if (!empty($musician['first_name'])) {
+                            $display_name = $musician['first_name'] . ' ' . $musician['last_name'];
+                        }
+                    } else {
+                        if (!empty($band_data['band_name'])) {
+                            $display_name = $band_data['band_name'];
+                        }
+                    }
+                    ?>
+                    <h3 class="card-title fw-bold"><?php echo htmlspecialchars($display_name); ?></h3>
                     
                     <div class="star-rating mb-2">
                         <?php 

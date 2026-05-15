@@ -203,5 +203,137 @@ document.addEventListener('DOMContentLoaded', function() {
                 togglePasswordIcon.classList.add('fa-eye-slash');
             }
         });
-    }
 });
+
+function reactPost(postId, type) {
+    const formData = new FormData();
+    formData.append("post_id", postId);
+    formData.append("type", type);
+
+    fetch("ajax_community.php?action=react", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Find all instances of reaction count for this post (might be on home and community)
+            const countEls = document.querySelectorAll(".reactions-count-" + postId);
+            countEls.forEach(el => {
+                el.innerHTML = '<i class="fas fa-heart text-danger"></i> ' + data.count + ' ‡∏Ñ‡∏ô‡∏£‡∏π‡πâ‡∏™‡∏∂‡∏Å‡∏ä‡∏≠‡∏ö';
+            });
+            // Also update home pulse count if exists
+            const pulseCount = document.querySelector("#pulse-reactions-" + postId);
+            if (pulseCount) pulseCount.innerHTML = '<i class="fas fa-heart text-danger me-1"></i> ' + data.count;
+        } else {
+            alert("Error: " + (data.error || "Unknown error"));
+        }
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        alert("‡∏Å‡∏≤‡∏£‡πÄ‡∏ä‡∏∑‡πà‡∏≠‡∏°‡∏ï‡πà‡∏≠‡∏•‡πâ‡∏°‡πÄ‡∏´‡∏•‡∏ß ‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡∏•‡∏≠‡∏á‡πÉ‡∏´‡∏°‡πà‡∏≠‡∏µ‡∏Å‡∏Ñ‡∏£‡∏±‡πâ‡∏á");
+    });
+}
+
+function toggleComments(postId) {
+    const el = document.getElementById("comments-" + postId);
+    if (!el) return;
+    if (el.classList.contains("d-none")) {
+        el.classList.remove("d-none");
+        loadComments(postId);
+    } else {
+        el.classList.add("d-none");
+    }
+}
+
+function loadComments(postId) {
+    const list = document.getElementById("comments-list-" + postId);
+    if (!list) return;
+    
+    fetch("ajax_community.php?action=get_comments&post_id=" + postId)
+    .then(res => res.text())
+    .then(html => {
+        list.innerHTML = html;
+    });
+}
+
+function submitComment(postId) {
+    const input = document.getElementById("comment-input-" + postId);
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+
+    const formData = new FormData();
+    formData.append("post_id", postId);
+    formData.append("content", content);
+
+    fetch("ajax_community.php?action=comment", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            input.value = "";
+            loadComments(postId);
+            // Update counts if needed
+        } else {
+            alert("Error: " + (data.error || "Unknown error"));
+        }
+    })
+    .catch(err => {
+        alert("‡∏Å‡∏≤‡∏£‡∏™‡πà‡∏á‡∏Ñ‡∏ß‡∏≤‡∏°‡∏Ñ‡∏¥‡∏î‡πÄ‡∏´‡πá‡∏ô‡∏•‡πâ‡∏°‡πÄ‡∏´‡∏•‡∏ß");
+    });
+}
+
+function submitEvent(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch(" ajax_community.php?action=create_event\, {
+ method: \POST\,
+ body: formData
+ })
+ .then(res => res.json())
+ .then(data => {
+ if (data.success) {
+ Swal.fire({
+ icon: \success\,
+ title: \ √È“ß°‘®°√√¡ ”‡√Á®!\,
+ showConfirmButton: false,
+ timer: 1500
+ }).then(() => location.reload());
+ } else {
+ alert(\Error: \ + data.error);
+ }
+ });
+}
+
+function joinEvent(eventId, btn) {
+ const formData = new FormData();
+ formData.append(\event_id\, eventId);
+
+ fetch(\ajax_community.php?action=join_event\, {
+ method: \POST\,
+ body: formData
+ })
+ .then(res => res.json())
+ .then(data => {
+ if (data.success) {
+ btn.innerHTML = \<i class=\\\fas fa-check me-1\\\></i>‡¢È“√Ë«¡·≈È«\;
+ btn.classList.remove(\btn-primary\);
+ btn.classList.add(\btn-outline-success\, \disabled\);
+ Swal.fire({
+ icon: \success\,
+ title: \‡¢È“√Ë«¡°‘®°√√¡ ”‡√Á®!\,
+ toast: true,
+ position: \top-end\,
+ showConfirmButton: false,
+ timer: 3000
+ });
+ } else {
+ alert(data.error);
+ }
+ });
+}

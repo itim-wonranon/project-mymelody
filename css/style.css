@@ -2,7 +2,7 @@
 :root {
     --primary-color: #c471ed; /* Neon Purple */
     --primary-dark: #a658d1;
-    --secondary-color: #8c8c9e;
+    --secondary-color: #a6a6b8;
     --background-color: #0b0b0f;
     --card-bg: #15151c;
     --text-color: #ffffff;
@@ -148,6 +148,13 @@ body {
 .text-warning {
     color: var(--cyan-accent) !important;
 }
+.text-secondary, .text-muted {
+    color: var(--secondary-color) !important;
+}
+.small, small {
+    font-size: 0.875rem;
+    letter-spacing: 0.3px;
+}
 .bg-primary {
     background-color: var(--primary-color) !important;
 }
@@ -170,7 +177,7 @@ body {
 }
 
 .form-control::placeholder {
-    color: #4a4a5a;
+    color: #7a7a8a;
 }
 
 /* Rating Stars */
@@ -233,6 +240,10 @@ body {
 .mixer-search input:focus {
     outline: none;
     box-shadow: none;
+}
+
+.mixer-search input::placeholder {
+    color: #8c8c9e;
 }
 
 .mixer-search .search-btn {
@@ -344,8 +355,12 @@ body {
 }
 
 .pulse-card:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.06);
     border-color: var(--cyan-accent);
+}
+
+.pulse-card p {
+    color: #e0e0e0 !important;
 }
 
 /* Become Musician Unique CTA */
@@ -713,4 +728,195 @@ input[type="radio"].role-radio:checked + .role-card span {
     .login-right {
         padding: 2rem 1.5rem;
     }
+}
+
+/* --- Community V2 Styles --- */
+.community-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .community-layout {
+        grid-template-columns: 250px 1fr;
+    }
+    .community-right {
+        display: none;
+    }
+}
+
+@media (max-width: 991px) {
+    .community-layout {
+        grid-template-columns: 1fr;
+    }
+    .community-left {
+        display: none;
+    }
+}
+
+/* Post Creator */
+.post-creator-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.post-input-wrapper {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.post-input-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+}
+
+.post-input-field {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    color: white;
+    padding: 12px 20px;
+    resize: none;
+    transition: all 0.3s ease;
+}
+
+.post-input-field:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 15px rgba(196, 113, 237, 0.2);
+}
+
+.post-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+/* Post Card */
+.community-post-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.community-post-card:hover {
+    border-color: rgba(196, 113, 237, 0.3);
+}
+
+/* Reactions */
+.reaction-container {
+    position: relative;
+    display: inline-block;
+}
+
+.reaction-popup {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: rgba(30, 30, 45, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 8px 15px;
+    display: flex;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+.reaction-container:hover .reaction-popup {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(-5px);
+}
+
+.reaction-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.reaction-icon:hover {
+    transform: scale(1.4);
+}
+
+/* Comments */
+.comment-bubble {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+/* Sidebar Nav */
+.community-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    color: var(--secondary-color);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.community-nav-link:hover, .community-nav-link.active {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(196, 113, 237, 0.3);
+}
+
+.community-nav-link i {
+    width: 20px;
+}
+
+/* Fix for overlapping issues in Community */
+.community-post-card {
+    z-index: 1;
+    position: relative;
+}
+
+.community-post-card .dropdown-menu {
+    z-index: 2000 !important;
 }

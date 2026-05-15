@@ -16,7 +16,7 @@
                     <a class="nav-link" href="search.php">ค้นหานักดนตรี</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="feed.php">Community</a>
+                    <a class="nav-link" href="community.php">Community</a>
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto align-items-center">

@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_post']) && isse
 
 // Fetch Posts
 $stmt = $conn->prepare("
-    SELECT p.*, u.username, u.role, m.profile_image as m_img, e.profile_image as e_img 
+    SELECT p.*, u.username, u.first_name, u.last_name, u.role, m.profile_image as m_img, m.band_type, m.band_members, e.profile_image as e_img 
     FROM posts p 
     JOIN users u ON p.user_id = u.id 
     LEFT JOIN musician_profiles m ON u.id = m.user_id 
@@ -87,7 +87,22 @@ $posts = $stmt->fetchAll();
                                         <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img-small me-3" alt="Profile">
                                         <div>
                                             <h6 class="mb-0 fw-bold">
-                                                <?php echo htmlspecialchars($post['username']); ?>
+                                                <?php 
+                                                $display_name = $post['username'];
+                                                if ($post['role'] === 'musician') {
+                                                    if ($post['band_type'] === 'solo') {
+                                                        if (!empty($post['first_name'])) {
+                                                            $display_name = $post['first_name'] . ' ' . $post['last_name'];
+                                                        }
+                                                    } else {
+                                                        $band_data = json_decode($post['band_members'], true);
+                                                        if (!empty($band_data['band_name'])) {
+                                                            $display_name = $band_data['band_name'];
+                                                        }
+                                                    }
+                                                }
+                                                echo htmlspecialchars($display_name);
+                                                ?>
                                                 <?php if ($post['role'] === 'musician'): ?>
                                                     <span class="badge bg-primary ms-1" style="font-size: 0.6rem;">นักดนตรี</span>
                                                 <?php elseif ($post['role'] === 'employer'): ?>
