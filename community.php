@@ -78,10 +78,10 @@ $sql = "
     LEFT JOIN community_profiles cp ON u.id = cp.user_id
 ";
 
-if ($filter === 'popular') {
-    $sql .= " ORDER BY reactions_total DESC, p.created_at DESC";
-} elseif ($filter === 'trending') {
-    // Trending: Most activity (reactions + comments) in the last 1 hour
+$search = $_GET['search'] ?? '';
+$search_query = !empty($search) ? " WHERE p.content LIKE ? " : "";
+
+if ($filter === 'trending') {
     $sql = "
         SELECT p.*, 
                u.username, u.first_name, u.last_name, u.role,
@@ -96,14 +96,24 @@ if ($filter === 'popular') {
         LEFT JOIN musician_profiles m ON u.id = m.user_id
         LEFT JOIN employer_profiles e ON u.id = e.user_id
         LEFT JOIN community_profiles cp ON u.id = cp.user_id
+        $search_query
         ORDER BY hourly_activity DESC, reactions_total DESC, p.created_at DESC
     ";
 } else {
-    $sql .= " ORDER BY p.created_at DESC";
+    $sql .= $search_query;
+    if ($filter === 'popular') {
+        $sql .= " ORDER BY reactions_total DESC, p.created_at DESC";
+    } else {
+        $sql .= " ORDER BY p.created_at DESC";
+    }
 }
 
 $stmt = $conn->prepare($sql);
-$stmt->execute();
+if (!empty($search)) {
+    $stmt->execute(['%' . $search . '%']);
+} else {
+    $stmt->execute();
+}
 $posts = $stmt->fetchAll();
 
 // 5. Fetch Trending Topics (Based on Hashtags in recent posts)
@@ -113,7 +123,7 @@ $stmt->execute();
 $recent_contents = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $hashtags = [];
 foreach ($recent_contents as $content) {
-    preg_match_all('/#(\w+)/u', $content, $matches);
+    preg_match_all('/#([^\s#]+)/u', $content, $matches);
     if (!empty($matches[1])) {
         foreach ($matches[1] as $tag) {
             $hashtags[$tag] = ($hashtags[$tag] ?? 0) + 1;
@@ -181,6 +191,7 @@ include 'includes/header.php';
 
                 <!-- Events List -->
                 <?php
+                $current_user_id = $_SESSION['user_id'] ?? 0;
                 $stmt = $conn->prepare("
                     SELECT e.*, u.username, u.first_name, u.last_name,
                            (SELECT COUNT(*) FROM event_participants WHERE event_id = e.id) as joined_count,
@@ -189,7 +200,7 @@ include 'includes/header.php';
                     JOIN users u ON e.user_id = u.id
                     ORDER BY e.event_date ASC
                 ");
-                $stmt->execute([$_SESSION['user_id']]);
+                $stmt->execute([$current_user_id]);
                 $events = $stmt->fetchAll();
                 ?>
 
@@ -322,9 +333,11 @@ include 'includes/header.php';
                     <?php else: ?>
                         <?php $rank = 1; foreach ($trending_tags as $tag => $count): ?>
                             <div class="trending-item mb-3 <?php echo $rank > 5 ? 'd-none extra-trending' : ''; ?>">
-                                <small class="text-secondary">#<?php echo $rank; ?> Trending</small>
-                                <h6 class="mb-0 fw-bold text-white">#<?php echo htmlspecialchars($tag); ?></h6>
-                                <small class="text-muted"><?php echo $count; ?> โพสต์</small>
+                                <a href="community.php?search=<?php echo urlencode('#' . $tag); ?>" class="text-decoration-none">
+                                    <small class="text-secondary">#<?php echo $rank; ?> Trending</small>
+                                    <h6 class="mb-0 fw-bold text-white hover-primary">#<?php echo htmlspecialchars($tag); ?></h6>
+                                    <small class="text-muted"><?php echo $count; ?> โพสต์</small>
+                                </a>
                             </div>
                             <?php $rank++; ?>
                         <?php endforeach; ?>
@@ -479,6 +492,56 @@ function addPollOption() {
     input.placeholder = 'ตัวเลือกเพิ่มเติม';
     container.appendChild(input);
 }
+
+<?php 
+// Get latest IDs for polling
+$latest_post_id = $conn->query("SELECT MAX(id) FROM posts")->fetchColumn() ?: 0;
+$latest_notif_id_stmt = $conn->prepare("SELECT MAX(id) FROM community_notifications WHERE user_id = ?");
+$latest_notif_id_stmt->execute([$_SESSION['user_id']]);
+$l_n_id = $latest_notif_id_stmt->fetchColumn() ?: 0;
+?>
+initPolling(<?php echo $latest_post_id; ?>, <?php echo $l_n_id; ?>);
+
+// Highlight post if coming from index pulse
+window.addEventListener('load', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('post_id');
+    if (postId) {
+        setTimeout(() => {
+            const postElement = document.getElementById('post-' + postId);
+            if (postElement) {
+                const navbarHeight = 100; // Buffer for sticky header
+                const elementPosition = postElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'auto' // Instant jump
+                });
+
+                postElement.classList.add('highlight-post');
+                setTimeout(() => {
+                    postElement.classList.remove('highlight-post');
+                }, 4000);
+            }
+        }, 100); // Faster trigger
+    }
+});
 </script>
 
 <?php include 'includes/footer.php'; ?>
+
+<!-- Reactions Modal -->
+<div class="modal fade" id="reactionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h6 class="modal-title text-white fw-bold">การแสดงความรู้สึก</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="reactionsModalBody" style="max-height: 400px; overflow-y: auto;">
+                <!-- Content loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
