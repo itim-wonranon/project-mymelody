@@ -184,4 +184,24 @@ document.addEventListener('DOMContentLoaded', function() {
     dayCheckboxes.forEach(cb => {
         toggleTimeInputs(cb);
     });
+
+    // Password Visibility Toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+    const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+    if (togglePassword && password && togglePasswordIcon) {
+        togglePassword.addEventListener('click', function () {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            if (type === 'password') {
+                togglePasswordIcon.classList.remove('fa-eye-slash');
+                togglePasswordIcon.classList.add('fa-eye');
+            } else {
+                togglePasswordIcon.classList.remove('fa-eye');
+                togglePasswordIcon.classList.add('fa-eye-slash');
+            }
+        });
+    }
 });

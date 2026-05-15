@@ -33,21 +33,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             // Hash password
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            
+
             try {
                 $conn->beginTransaction();
-                
+
                 // Insert user
                 $stmt = $conn->prepare("INSERT INTO users (username, email, password, role, first_name, last_name, phone) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$username, $email, $hashed_password, $role, $first_name, $last_name, $phone]);
                 $user_id = $conn->lastInsertId();
-                
+
                 // Create employer profile by default
                 $stmt = $conn->prepare("INSERT INTO employer_profiles (user_id) VALUES (?)");
                 $stmt->execute([$user_id]);
-                
+
                 $conn->commit();
-                $success = "สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ";
+                $_SESSION['success_msg'] = "สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ";
+                header("Location: login.php");
+                exit();
             } catch (Exception $e) {
                 $conn->rollBack();
                 $error = "เกิดข้อผิดพลาดในการลงทะเบียน: " . $e->getMessage();
@@ -58,77 +60,118 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 <?php include 'includes/header.php'; ?>
 
-</style>
+<!-- custom full-screen login container -->
+<div class="login-wrapper">
+    <div class="login-left">
+        <!-- background image via CSS -->
+        <div class="login-overlay">
+            <h1 class="login-title">JOIN THE<br>COMMUNITY<br><span class="text-primary"
+                    style="font-style: italic; letter-spacing: 1px;">MY MELODY</span></h1>
+            <p class="login-subtitle mt-3">เริ่มต้นเส้นทางดนตรีของคุณ สมัครสมาชิกเพื่อค้นหาโอกาสสำหรับตัวคุณ</p>
+        </div>
+    </div>
+    <div class="login-right py-4">
+        <div class="login-form-container" style="max-width: 500px;">
+            <div class="text-center mb-4">
+                <div class="mb-3 d-inline-block p-3 rounded-circle"
+                    style="background: rgba(196, 113, 237, 0.1); border: 1px solid rgba(196, 113, 237, 0.2);">
+                    <i class="fas fa-user-plus text-primary"
+                        style="font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(196, 113, 237, 0.5));"></i>
+                </div>
+                <h2 class="fw-bold fs-2">สมัครสมาชิก</h2>
+                <p class="text-secondary mt-1">กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีใหม่</p>
+            </div>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-body p-5">
-                    <h2 class="text-center mb-4 text-primary fw-bold">สมัครสมาชิก</h2>
-                    
-                    <?php if ($error): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?php echo $error; ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ($success): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <?php echo $success; ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    <?php endif; ?>
+            <?php if ($error): ?>
+                <div class="alert alert-danger alert-dismissible fade show border-0 rounded-4" role="alert"
+                    style="background: rgba(220,53,69,0.1); color: #ff6b6b; padding: 1rem 1.25rem;">
+                    <i class="fas fa-exclamation-circle me-2"></i> <?php echo $error; ?>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
+                        aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
 
-                    <form method="POST" action="register.php">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="first_name" class="form-label">ชื่อจริง (First Name)</label>
-                                <input type="text" class="form-control" id="first_name" name="first_name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="last_name" class="form-label">นามสกุล (Last Name)</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name" required>
-                            </div>
+            <form method="POST" action="register.php" class="mt-2">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="first_name" class="form-label text-secondary fw-semibold">ชื่อจริง</label>
+                        <div class="input-group login-input-group">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            <input type="text" class="form-control" id="first_name" name="first_name"
+                                placeholder="ชื่อจริง" required>
                         </div>
-
-                        <div class="mb-3">
-                            <label for="username" class="form-label">ชื่อผู้ใช้งาน (Username)</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="last_name" class="form-label text-secondary fw-semibold">นามสกุล</label>
+                        <div class="input-group login-input-group">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            <input type="text" class="form-control" id="last_name" name="last_name"
+                                placeholder="นามสกุล" required>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label">อีเมล (Email)</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">เบอร์โทรศัพท์ (Phone Number)</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">รหัสผ่าน</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="confirm_password" class="form-label">ยืนยันรหัสผ่าน</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">ลงทะเบียน</button>
-                        </div>
-                    </form>
-                    <div class="text-center mt-3">
-                        <p>มีบัญชีอยู่แล้ว? <a href="login.php" class="text-decoration-none">เข้าสู่ระบบ</a></p>
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label for="username" class="form-label text-secondary fw-semibold">ชื่อผู้ใช้งาน</label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="username"
+                            placeholder="ตั้งชื่อผู้ใช้งาน" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label text-secondary fw-semibold">อีเมล</label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label text-secondary fw-semibold">เบอร์โทรศัพท์</label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="08x-xxx-xxxx"
+                            required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label text-secondary fw-semibold">รหัสผ่าน</label>
+                        <div class="input-group login-input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="confirm_password"
+                            class="form-label text-secondary fw-semibold">ยืนยันรหัสผ่าน</label>
+                        <div class="input-group login-input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                placeholder="••••••••" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid mb-4">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill glow-btn fw-bold py-2">ลงทะเบียน <i
+                            class="fas fa-arrow-right ms-2"></i></button>
+                </div>
+            </form>
+            <div class="text-center mt-auto">
+                <p class="mb-0 text-secondary">มีบัญชีอยู่แล้ว? <a href="login.php"
+                        class="text-primary fw-bold text-decoration-none hover-glow ms-1">เข้าสู่ระบบ</a></p>
             </div>
         </div>
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php
+$hide_footer = true;
+include 'includes/footer.php';
+?>
