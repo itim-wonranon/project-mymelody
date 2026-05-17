@@ -32,20 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $work_areas = $_POST['work_areas'] ?? [];
     $work_areas_json = json_encode($work_areas, JSON_UNESCAPED_UNICODE);
 
-    // Process Availability (Days & Specific Times)
-    $availability_days = $_POST['availability_days'] ?? [];
-    $time_start = $_POST['time_start'] ?? [];
-    $time_end = $_POST['time_end'] ?? [];
-    
-    $availability = [];
-    foreach ($availability_days as $day) {
-        $availability[$day] = [
-            'start' => $time_start[$day] ?? '',
-            'end' => $time_end[$day] ?? ''
-        ];
-    }
-    // We store the full array into availability_days to keep schema unchanged but rich in data
-    // The previous availability_times will just store an empty json or we can store something else.
+    // Process Availability from Neon Calendar JSON payload
+    $calendar_json = $_POST['availability_calendar_json'] ?? '[]';
+    $availability = json_decode($calendar_json, true) ?? [];
+
     $days_json = json_encode($availability, JSON_UNESCAPED_UNICODE);
     $times_json = json_encode([], JSON_UNESCAPED_UNICODE); // Kept for backwards schema compatibility
 
@@ -162,21 +152,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <h4 class="section-title fw-bold"><i class="fas fa-users me-2"></i>2. ประเภทศิลปิน</h4>
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
-                            <input type="radio" class="btn-check" name="band_type" id="type_solo" value="solo" autocomplete="off" checked onchange="toggleBandFields()">
-                            <label class="btn btn-outline-primary w-100 py-3" for="type_solo">
-                                <i class="fas fa-user fa-2x mb-2 d-block"></i>ศิลปินเดี่ยว
+                            <input type="radio" class="role-radio-hidden" name="band_type" id="type_solo" value="solo" autocomplete="off" checked onchange="toggleBandFields()">
+                            <label class="role-card-premium w-100 text-center py-4 px-3 h-100 d-flex flex-column justify-content-center cursor-pointer" for="type_solo">
+                                <i class="fas fa-user fa-3x mb-3 text-info"></i>
+                                <span class="role-title d-block text-white fw-bold mb-1">ศิลปินเดี่ยว</span>
+                                <span class="role-desc d-block text-secondary small">ร้องเดี่ยว, เล่นเครื่องดนตรีชิ้นเดียว</span>
                             </label>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <input type="radio" class="btn-check" name="band_type" id="type_duo" value="duo" autocomplete="off" onchange="toggleBandFields()">
-                            <label class="btn btn-outline-primary w-100 py-3" for="type_duo">
-                                <i class="fas fa-user-friends fa-2x mb-2 d-block"></i>ศิลปินคู่
+                            <input type="radio" class="role-radio-hidden" name="band_type" id="type_duo" value="duo" autocomplete="off" onchange="toggleBandFields()">
+                            <label class="role-card-premium w-100 text-center py-4 px-3 h-100 d-flex flex-column justify-content-center cursor-pointer" for="type_duo">
+                                <i class="fas fa-user-friends fa-3x mb-3 text-warning"></i>
+                                <span class="role-title d-block text-white fw-bold mb-1">ศิลปินคู่ (Duo)</span>
+                                <span class="role-desc d-block text-secondary small">นักร้องดูโอ้, อคูสติกแพ็คคู่</span>
                             </label>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <input type="radio" class="btn-check" name="band_type" id="type_band" value="band" autocomplete="off" onchange="toggleBandFields()">
-                            <label class="btn btn-outline-primary w-100 py-3" for="type_band">
-                                <i class="fas fa-users fa-2x mb-2 d-block"></i>วงดนตรี (3 คนขึ้นไป)
+                            <input type="radio" class="role-radio-hidden" name="band_type" id="type_band" value="band" autocomplete="off" onchange="toggleBandFields()">
+                            <label class="role-card-premium w-100 text-center py-4 px-3 h-100 d-flex flex-column justify-content-center cursor-pointer" for="type_band">
+                                <i class="fas fa-users fa-3x mb-3 text-danger"></i>
+                                <span class="role-title d-block text-white fw-bold mb-1">วงดนตรี (Band)</span>
+                                <span class="role-desc d-block text-secondary small">ฟูลแบนด์ 3 คนขึ้นไป</span>
                             </label>
                         </div>
                     </div>
@@ -251,86 +247,99 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     </div>
 
-                    <!-- 5. เขตพื้นที่รับงาน -->
-                    <h4 class="section-title fw-bold"><i class="fas fa-map-marker-alt me-2"></i>5. เขตพื้นที่รับงาน <span class="text-muted fs-6 fw-normal">(ระบุได้อย่างละเอียด)</span></h4>
+                    <!-- 5. ภาคที่รับงาน (ระดับภาค) -->
+                    <h4 class="section-title fw-bold"><i class="fas fa-map-marker-alt me-2"></i>5. ภาคที่รับงาน</h4>
                     
-                    <div class="card bg-dark border-secondary mb-4">
-                        <div class="card-body">
-                            <h5 class="text-info fw-bold mb-3">กรุงเทพมหานคร (ทุกเขต)</h5>
-                            <div class="checkbox-grid custom-checkbox">
-                                <?php 
-                                $bkk_zones = ['พระนคร', 'ดุสิต', 'หนองจอก', 'บางรัก', 'บางเขน', 'บางกะปิ', 'ปทุมวัน', 'ป้อมปราบศัตรูพ่าย', 'พระโขนง', 'มีนบุรี', 'ลาดกระบัง', 'ยานนาวา', 'สัมพันธวงศ์', 'พญาไท', 'ธนบุรี', 'บางกอกใหญ่', 'ห้วยขวาง', 'คลองสาน', 'ตลิ่งชัน', 'บางกอกน้อย', 'บางขุนเทียน', 'ภาษีเจริญ', 'หนองแขม', 'ราษฎร์บูรณะ', 'บางพลัด', 'ดินแดง', 'บึงกุ่ม', 'สาทร', 'บางซื่อ', 'จตุจักร', 'บางคอแหลม', 'ประเวศ', 'คลองเตย', 'สวนหลวง', 'จอมทอง', 'ดอนเมือง', 'ราชเทวี', 'ลาดพร้าว', 'วัฒนา', 'บางแค', 'หลักสี่', 'สายไหม', 'คันนายาว', 'สะพานสูง', 'วังทองหลาง', 'คลองสามวา', 'บางนา', 'ทวีวัฒนา', 'ทุ่งครุ', 'บางบอน'];
-                                foreach ($bkk_zones as $zone): ?>
-                                    <div class="form-check">
-                                        <input class="form-check-input bg-dark border-secondary" type="checkbox" name="work_areas[]" value="กรุงเทพมหานคร > เขต<?php echo htmlspecialchars($zone); ?>" id="zone_<?php echo md5($zone); ?>">
-                                        <label class="form-check-label text-light" for="zone_<?php echo md5($zone); ?>"><?php echo htmlspecialchars($zone); ?></label>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="card bg-dark border-secondary mb-4 p-4">
+                        <div class="row g-3">
+                            <?php
+                            $regions_mapping = [
+                                'ภาคกลาง' => ['icon' => 'fa-city', 'desc' => 'กรุงเทพมหานคร และปริมณฑล', 'color' => 'text-info'],
+                                'ภาคเหนือ' => ['icon' => 'fa-mountain', 'desc' => 'เชียงใหม่, เชียงราย, แม่ฮ่องสอน ฯลฯ', 'color' => 'text-success'],
+                                'ภาคตะวันออกเฉียงเหนือ' => ['icon' => 'fa-sun', 'desc' => 'ขอนแก่น, โคราช, อุดรธานี ฯลฯ', 'color' => 'text-warning'],
+                                'ภาคใต้' => ['icon' => 'fa-umbrella-beach', 'desc' => 'ภูเก็ต, หาดใหญ่, สุราษฎร์ธานี ฯลฯ', 'color' => 'text-primary'],
+                                'ภาคตะวันออก' => ['icon' => 'fa-water', 'desc' => 'ชลบุรี, พัทยา, ระยอง ฯลฯ', 'color' => 'text-danger'],
+                                'ภาคตะวันตก' => ['icon' => 'fa-tree', 'desc' => 'กาญจนบุรี, ตาก, ราชบุรี ฯลฯ', 'color' => 'text-pink']
+                            ];
 
-                    <div class="card bg-dark border-secondary mb-4">
-                        <div class="card-body">
-                            <h5 class="text-warning fw-bold mb-3">ต่างจังหวัด</h5>
-                            <p class="text-muted small">เลือกจังหวัด, อำเภอ, ตำบล และกดปุ่ม "เพิ่มพื้นที่" (สามารถเลือกไม่ครบทุกระดับได้)</p>
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <select class="form-select bg-dark border-secondary text-white mb-2" id="prov_select" onchange="onProvinceChange()">
-                                        <option value="">-- กำลังโหลดจังหวัด --</option>
-                                    </select>
+                            foreach ($regions_mapping as $reg_name => $reg_info):
+                                $reg_id = 'reg_' . md5($reg_name);
+                                ?>
+                                <div class="col-md-4 col-sm-6">
+                                    <input type="checkbox" class="role-radio-hidden" name="work_areas[]" value="<?php echo htmlspecialchars($reg_name); ?>" id="<?php echo $reg_id; ?>">
+                                    <label class="role-card-premium w-100 text-center py-4 px-3 h-100 d-flex flex-column justify-content-center cursor-pointer" for="<?php echo $reg_id; ?>">
+                                        <i class="fas <?php echo $reg_info['icon']; ?> fa-2x mb-3 <?php echo $reg_info['color']; ?>"></i>
+                                        <span class="role-title d-block text-white fw-bold mb-1" style="font-size: 1.05rem;"><?php echo $reg_name; ?></span>
+                                        <span class="role-desc d-block text-secondary small" style="font-size: 0.78rem;"><?php echo $reg_info['desc']; ?></span>
+                                    </label>
                                 </div>
-                                <div class="col-md-3">
-                                    <select class="form-select bg-dark border-secondary text-white mb-2" id="amph_select" onchange="onAmphureChange()" disabled>
-                                        <option value="">-- เลือกอำเภอ --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <select class="form-select bg-dark border-secondary text-white mb-2" id="tam_select" disabled>
-                                        <option value="">-- เลือกตำบล --</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <button type="button" class="btn btn-outline-warning w-100" onclick="addProvincialArea()">
-                                        <i class="fas fa-plus me-1"></i>เพิ่มพื้นที่
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="provincial_areas_container" class="p-2 border border-secondary rounded min-vh-25">
-                                <!-- Selected areas will appear here -->
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
                     <!-- 6. วันเวลาที่รับงาน -->
-                    <h4 class="section-title fw-bold"><i class="fas fa-calendar-alt me-2"></i>6. วันเวลาที่รับงาน <span class="text-muted fs-6 fw-normal">(ระบุเวลาที่ชัดเจน)</span></h4>
-                    <div class="row mb-4 custom-checkbox">
-                        <?php 
-                        $days_mapping = [
-                            'Monday' => 'วันจันทร์', 'Tuesday' => 'วันอังคาร', 'Wednesday' => 'วันพุธ', 
-                            'Thursday' => 'วันพฤหัสบดี', 'Friday' => 'วันศุกร์', 'Saturday' => 'วันเสาร์', 'Sunday' => 'วันอาทิตย์'
-                        ];
-                        foreach ($days_mapping as $en_day => $th_day): ?>
-                            <div class="col-md-6 mb-3">
-                                <div class="card bg-dark border-secondary p-3">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input day-checkbox bg-dark border-secondary" type="checkbox" name="availability_days[]" value="<?php echo $en_day; ?>" id="day_<?php echo $en_day; ?>" onchange="toggleTimeInputs(this)">
-                                        <label class="form-check-label text-light fw-bold" for="day_<?php echo $en_day; ?>"><?php echo $th_day; ?></label>
+                    <h4 class="section-title fw-bold"><i class="fas fa-calendar-alt me-2"></i>6. วันเวลาที่รับงาน (ปฏิทินปฏิทิน)</h4>
+                    <p class="text-secondary small mb-4">เลือกวันที่คุณพร้อมทำการแสดงโดยคลิกที่ปฏิทิน แล้วกำหนดช่วงเวลาว่างที่สามารถรับงานได้</p>
+
+                    <div class="row mb-4">
+                        <!-- Left: Calendar Widget -->
+                        <div class="col-lg-7 mb-4 mb-lg-0">
+                            <div class="neon-calendar-container">
+                                <div class="neon-calendar-header">
+                                    <button type="button" class="neon-calendar-btn" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+                                    <div class="neon-calendar-title" id="calendar_title">พฤษภาคม 2569</div>
+                                    <button type="button" class="neon-calendar-btn" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+                                </div>
+                                <div class="neon-calendar-weekdays">
+                                    <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+                                </div>
+                                <div class="neon-calendar-grid" id="calendar_grid">
+                                    <!-- Days dynamically rendered via Javascript -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Time Editor Panel -->
+                        <div class="col-lg-5">
+                            <div class="neon-time-panel h-100 d-flex flex-column justify-content-center p-4 border border-secondary border-opacity-15 rounded-4 bg-dark bg-opacity-20">
+                                <div id="time_editor_empty" class="text-center py-5 text-secondary">
+                                    <i class="fas fa-hand-pointer fa-3x mb-3 text-cyan opacity-50 animate__pulse"></i>
+                                    <h6 class="text-light fw-bold">กรุณาคลิกเลือกวันที่บนปฏิทิน</h6>
+                                    <p class="small mb-0">เพื่อกำหนดคิวรับงานในวันนั้น</p>
+                                </div>
+                                
+                                <div id="time_editor_form" style="display: none;" class="animate__animated animate__fadeIn text-center py-3">
+                                    <h5 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-15 pb-3" id="editing_date_label">
+                                        <i class="fas fa-calendar-alt text-pink me-2"></i>ตั้งค่าสำหรับวันที่...
+                                    </h5>
+                                    
+                                    <div class="form-check form-switch custom-switch-premium d-inline-block mb-3">
+                                        <input class="form-check-input cursor-pointer" type="checkbox" id="date_active_toggle" onchange="toggleDateActive(this)">
+                                        <label class="form-check-label text-light fw-bold cursor-pointer" for="date_active_toggle" style="font-size: 1.1rem; padding-left: 0.5rem;">
+                                            เปิดรับงานในวันนี้
+                                        </label>
                                     </div>
-                                    <div class="time-inputs row g-2" id="time_inputs_<?php echo $en_day; ?>" style="display: none;">
-                                        <div class="col-6">
-                                            <label class="text-muted small">เวลาเริ่ม</label>
-                                            <input type="time" class="form-control bg-dark text-white border-secondary" name="time_start[<?php echo $en_day; ?>]">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="text-muted small">เวลาสิ้นสุด</label>
-                                            <input type="time" class="form-control bg-dark text-white border-secondary" name="time_end[<?php echo $en_day; ?>]">
-                                        </div>
+                                    
+                                    <!-- Hidden elements to keep absolute compatibility with JS states without errors -->
+                                    <div id="time_inputs_wrapper" style="display: none;">
+                                        <input type="hidden" id="date_start_time" value="18:00">
+                                        <input type="hidden" id="date_end_time" value="21:00">
+                                        <select id="start_hour" style="display: none;"><option value="18" selected>18</option></select>
+                                        <select id="start_minute" style="display: none;"><option value="00" selected>00</option></select>
+                                        <select id="end_hour" style="display: none;"><option value="21" selected>21</option></select>
+                                        <select id="end_minute" style="display: none;"><option value="00" selected>00</option></select>
+                                    </div>
+                                    
+                                    <div class="text-secondary small mt-4 border-top border-secondary border-opacity-10 pt-3 text-start">
+                                        * เมื่อเลือกเปิดรับงาน วันดังกล่าวจะเปลี่ยนเป็นแถบสีเรืองแสงทันที คุณสามารถบันทึกเพื่ออัปเดตลงฐานข้อมูลเมื่อกดปุ่ม "ยืนยันการสมัคร" ด้านล่างสุด
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        </div>
                     </div>
+
+                    <!-- Hidden input to store actual calendar slots JSON -->
+                    <input type="hidden" name="availability_calendar_json" id="availability_calendar_json" value="[]">
 
                     <!-- 7. แนะนำตัว -->
                     <h4 class="section-title fw-bold"><i class="fas fa-id-card me-2"></i>7. แนะนำตัว / ประวัติ</h4>
@@ -347,6 +356,290 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </div>
 
+<script>
+    // Toggle showing solo or band fields based on selected artist type
+    function toggleBandFields() {
+        const checkedInput = document.querySelector('input[name="band_type"]:checked');
+        if (!checkedInput) return;
 
+        const bandType = checkedInput.value;
+        const soloFields = document.getElementById('solo_fields');
+        const bandFields = document.getElementById('band_fields');
+
+        const inputsSolo = soloFields.querySelectorAll('input');
+        const inputsBand = bandFields.querySelectorAll('input');
+
+        if (bandType === 'solo') {
+            soloFields.style.display = 'block';
+            bandFields.style.display = 'none';
+
+            inputsSolo.forEach(i => i.disabled = false);
+            inputsBand.forEach(i => i.disabled = true);
+        } else {
+            soloFields.style.display = 'none';
+            bandFields.style.display = 'block';
+
+            inputsSolo.forEach(i => i.disabled = true);
+            inputsBand.forEach(i => i.disabled = false);
+        }
+    }
+
+    // Add a band member row dynamically
+    function addMemberField() {
+        const container = document.getElementById('members_container');
+        const row = document.createElement('div');
+        row.className = 'row mb-3 member-row align-items-end animate__animated animate__fadeInUp';
+        row.innerHTML = `
+        <div class="col-md-4">
+            <label class="text-secondary small mb-1">ชื่อสมาชิก</label>
+            <input type="text" class="form-control bg-dark border-secondary text-white" name="member_name[]" placeholder="ระบุชื่อ" required>
+        </div>
+        <div class="col-md-3">
+            <label class="text-secondary small mb-1">อายุ</label>
+            <input type="number" class="form-control bg-dark border-secondary text-white" name="member_age[]" placeholder="ระบุอายุ" required>
+        </div>
+        <div class="col-md-4">
+            <label class="text-secondary small mb-1">เครื่องดนตรี / หน้าที่</label>
+            <input type="text" class="form-control bg-dark border-secondary text-white" name="member_instruments[]" placeholder="เช่น นักร้องนำ, กีตาร์" required>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-outline-danger w-100 py-2.5" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button>
+        </div>
+    `;
+        container.appendChild(row);
+    }
+
+    // NEON CALENDAR STATE ENGINE
+    let calendarData = []; // Array of {date: "YYYY-MM-DD", start: "HH:MM", end: "HH:MM"}
+    let currentYear, currentMonth;
+    let selectedDateStr = null;
+
+    const monthNamesTH = [
+        "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+        "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+    ];
+
+    // Render calendar cells dynamically
+    function renderCalendar() {
+        const grid = document.getElementById('calendar_grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        // Month Year Header Title (Buddhist Era conversion +543)
+        const titleText = `${monthNamesTH[currentMonth]} ${currentYear + 543}`;
+        document.getElementById('calendar_title').innerText = titleText;
+
+        const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+        const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        // Pin the navigation within the current year only
+        const prevBtn = document.querySelector('button[onclick="prevMonth()"]');
+        const nextBtn = document.querySelector('button[onclick="nextMonth()"]');
+        if (prevBtn) {
+            prevBtn.style.opacity = (currentMonth <= 0) ? '0.3' : '1';
+            prevBtn.style.pointerEvents = (currentMonth <= 0) ? 'none' : 'auto';
+        }
+        if (nextBtn) {
+            nextBtn.style.opacity = (currentMonth >= 11) ? '0.3' : '1';
+            nextBtn.style.pointerEvents = (currentMonth >= 11) ? 'none' : 'auto';
+        }
+
+        // Pad blank days of previous month
+        for (let i = 0; i < firstDayIndex; i++) {
+            const inactiveDiv = document.createElement('div');
+            inactiveDiv.className = 'neon-calendar-day inactive';
+            grid.appendChild(inactiveDiv);
+        }
+
+        // Render current month days
+        for (let day = 1; day <= totalDays; day++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'neon-calendar-day';
+            dayDiv.innerText = day;
+
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            dayDiv.setAttribute('data-date', dateStr);
+
+            // Active availability slot highlighting
+            const slot = calendarData.find(item => item.date === dateStr);
+            if (slot) {
+                dayDiv.classList.add('active-slot');
+            }
+
+            // Current select state highlighting
+            if (selectedDateStr === dateStr) {
+                dayDiv.classList.add('selected');
+            }
+
+            dayDiv.addEventListener('click', () => selectDate(dateStr, dayDiv));
+            grid.appendChild(dayDiv);
+        }
+    }
+
+    function prevMonth() {
+        if (currentMonth <= 0) return;
+        currentMonth--;
+        renderCalendar();
+    }
+
+    function nextMonth() {
+        if (currentMonth >= 11) return;
+        currentMonth++;
+        renderCalendar();
+    }
+
+    function combineStartTime() {
+        const h = document.getElementById('start_hour').value;
+        const m = document.getElementById('start_minute').value;
+        document.getElementById('date_start_time').value = `${h}:${m}`;
+        updateDateData();
+    }
+
+    function combineEndTime() {
+        const h = document.getElementById('end_hour').value;
+        const m = document.getElementById('end_minute').value;
+        document.getElementById('date_end_time').value = `${h}:${m}`;
+        updateDateData();
+    }
+
+    function selectDate(dateStr, dayElement) {
+        selectedDateStr = dateStr;
+
+        // Toggle selected styling
+        document.querySelectorAll('.neon-calendar-day').forEach(el => el.classList.remove('selected'));
+        dayElement.classList.add('selected');
+
+        // Show configuration panel
+        document.getElementById('time_editor_empty').style.display = 'none';
+        document.getElementById('time_editor_form').style.display = 'block';
+
+        const parts = dateStr.split('-');
+        const y = parseInt(parts[0]) + 543;
+        const m = monthNamesTH[parseInt(parts[1]) - 1];
+        const d = parseInt(parts[2]);
+        document.getElementById('editing_date_label').innerHTML = `<i class="fas fa-edit text-pink me-2"></i>ตั้งเวลาสำหรับวันที่ ${d} ${m} ${y}`;
+
+        // Populate panel inputs with saved slot details
+        const slot = calendarData.find(item => item.date === dateStr);
+        const toggle = document.getElementById('date_active_toggle');
+        const wrapper = document.getElementById('time_inputs_wrapper');
+        const startInput = document.getElementById('date_start_time');
+        const endInput = document.getElementById('date_end_time');
+
+        if (slot) {
+            toggle.checked = true;
+            wrapper.style.display = 'block';
+            
+            const startVal = slot.start || '18:00';
+            const endVal = slot.end || '21:00';
+            
+            startInput.value = startVal;
+            endInput.value = endVal;
+            
+            const startParts = startVal.split(':');
+            document.getElementById('start_hour').value = startParts[0] || '18';
+            document.getElementById('start_minute').value = startParts[1] || '00';
+            
+            const endParts = endVal.split(':');
+            document.getElementById('end_hour').value = endParts[0] || '21';
+            document.getElementById('end_minute').value = endParts[1] || '00';
+        } else {
+            toggle.checked = false;
+            wrapper.style.display = 'none';
+            startInput.value = '';
+            endInput.value = '';
+            
+            document.getElementById('start_hour').value = '18';
+            document.getElementById('start_minute').value = '00';
+            document.getElementById('end_hour').value = '21';
+            document.getElementById('end_minute').value = '00';
+        }
+    }
+
+    function toggleDateActive(checkbox) {
+        const wrapper = document.getElementById('time_inputs_wrapper');
+        const startInput = document.getElementById('date_start_time');
+        const endInput = document.getElementById('date_end_time');
+
+        if (checkbox.checked) {
+            wrapper.style.display = 'block';
+            wrapper.classList.add('animate__animated', 'animate__fadeIn');
+            if (!startInput.value) startInput.value = '18:00';
+            if (!endInput.value) endInput.value = '21:00';
+            
+            const startParts = startInput.value.split(':');
+            document.getElementById('start_hour').value = startParts[0] || '18';
+            document.getElementById('start_minute').value = startParts[1] || '00';
+            
+            const endParts = endInput.value.split(':');
+            document.getElementById('end_hour').value = endParts[0] || '21';
+            document.getElementById('end_minute').value = endParts[1] || '00';
+            
+            updateDateData();
+        } else {
+            wrapper.style.display = 'none';
+            calendarData = calendarData.filter(item => item.date !== selectedDateStr);
+            saveCalendarJSON();
+            updateCalendarDayCell(selectedDateStr, false);
+        }
+    }
+
+    function updateDateData() {
+        const startVal = document.getElementById('date_start_time').value;
+        const endVal = document.getElementById('date_end_time').value;
+
+        let slot = calendarData.find(item => item.date === selectedDateStr);
+        if (slot) {
+            slot.start = startVal;
+            slot.end = endVal;
+        } else {
+            calendarData.push({
+                date: selectedDateStr,
+                start: startVal,
+                end: endVal
+            });
+        }
+
+        saveCalendarJSON();
+        updateCalendarDayCell(selectedDateStr, true);
+    }
+
+    function updateCalendarDayCell(dateStr, isActive) {
+        const cell = document.querySelector(`.neon-calendar-day[data-date="${dateStr}"]`);
+        if (cell) {
+            if (isActive) {
+                cell.classList.add('active-slot');
+            } else {
+                cell.classList.remove('active-slot');
+            }
+        }
+    }
+
+    function saveCalendarJSON() {
+        document.getElementById('availability_calendar_json').value = JSON.stringify(calendarData, null, 2);
+    }
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleBandFields();
+        
+        // Parse calendar JSON values
+        const jsonVal = document.getElementById('availability_calendar_json').value;
+        try {
+            const parsed = JSON.parse(jsonVal);
+            if (Array.isArray(parsed)) {
+                // Ensure backward compatibility or format correction
+                calendarData = parsed.filter(item => item && item.date);
+            }
+        } catch(e) {
+            calendarData = [];
+        }
+
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth();
+        renderCalendar();
+    });
+</script>
 
 <?php include 'includes/footer.php'; ?>

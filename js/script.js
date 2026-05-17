@@ -11,6 +11,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Global File Size Validation (Max 40MB) to prevent POST-max-size PHP errors
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.type === 'file') {
+        const input = e.target;
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const fileSizeMB = file.size / (1024 * 1024);
+            
+            // Check if it's a video file (exempt from global size check)
+            const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|ogg|avi|mov|mkv)$/i.test(file.name);
+            
+            if (!isVideo && fileSizeMB > 40) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'รูปภาพมีขนาดใหญ่เกินกำหนด!',
+                        html: `ไฟล์ภาพ <strong>"${file.name}"</strong> มีขนาด <strong>${fileSizeMB.toFixed(2)} MB</strong> ซึ่งเกินขีดจำกัดสูงสุดสำหรับรูปภาพ (สูงสุด 40 MB)<br><br>กรุณาอัปโหลดรูปภาพที่มีขนาดไม่เกิน 40 MB เพื่อประสิทธิภาพของระบบครับ`,
+                        confirmButtonText: 'รับทราบ',
+                        background: '#15151e',
+                        color: '#ffffff',
+                        confirmButtonColor: '#ff8efb',
+                        customClass: {
+                            popup: 'glass-card-premium border border-secondary border-opacity-15 rounded-4'
+                        }
+                    });
+                } else {
+                    alert(`⚠️ รูปภาพ "${file.name}" มีขนาดใหญ่เกินกำหนด!\n\nขนาดไฟล์ของคุณ: ${fileSizeMB.toFixed(2)} MB\nขีดจำกัดสูงสุด: 40 MB\n\nกรุณาอัปโหลดรูปภาพที่มีขนาดเล็กลงครับ`);
+                }
+                
+                input.value = ''; // Reset file input
+                
+                // Reset file labels and previews if exist
+                const label = document.getElementById('file_name_label');
+                if (label) {
+                    label.style.display = 'none';
+                }
+            }
+        }
+    }
+});
+
 function getReactionIcon(type) {
     switch (type) {
         case 'heart': return '❤️';
