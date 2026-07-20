@@ -83,7 +83,7 @@ $top_posts = $stmt->fetchAll();
 <div class="hero-section" style="background-image: url('images/hero_bg.png');">
     <div class="hero-overlay"></div>
     <div class="hero-content container text-center py-5">
-        <h1 class="display-title text-white mb-2 animate__animated animate__fadeInDown">MY MELODY</h1>
+        <h1 class="display-title text-white mb-2 animate__animated animate__fadeInDown">MY MELODYyyy</h1>
         <p class="fs-4 text-gradient mb-5 animate__animated animate__fadeInUp">Crafting the perfect stage for every
             talent</p>
 
@@ -157,7 +157,7 @@ $top_posts = $stmt->fetchAll();
                             <img src="<?php echo htmlspecialchars($img_src); ?>" class="avatar-lg shadow" alt="Artist">
                             <div class="artist-status"></div>
                         </div>
-                        <?php 
+                        <?php
                         $display_name = $musician['username'];
                         if ($musician['band_type'] === 'solo') {
                             if (!empty($musician['first_name'])) {
@@ -249,18 +249,24 @@ $top_posts = $stmt->fetchAll();
     <div class="my-5 py-5 border-top border-bottom border-secondary">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h6 class="text-warning fw-bold text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem;">Community Pulse</h6>
+                <h6 class="text-warning fw-bold text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem;">
+                    Community Pulse</h6>
                 <h3 class="fw-bold text-white">ความเคลื่อนไหวในคอมมูนิตี้</h3>
             </div>
-            <a href="community.php" class="btn btn-sm btn-outline-warning rounded-pill px-4" style="font-size: 0.75rem;">เข้าสู่คอมมูนิตี้</a>
+            <a href="community.php" class="btn btn-sm btn-outline-warning rounded-pill px-4"
+                style="font-size: 0.75rem;">เข้าสู่คอมมูนิตี้</a>
         </div>
 
         <ul class="nav nav-pills mb-4 gap-2" id="pulseTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active rounded-pill px-4 py-1 small border border-secondary border-opacity-25" id="trending-tab" data-bs-toggle="pill" data-bs-target="#trending" type="button" role="tab" style="font-size: 0.75rem;">ยอดฮิต (Top 4)</button>
+                <button class="nav-link active rounded-pill px-4 py-1 small border border-secondary border-opacity-25"
+                    id="trending-tab" data-bs-toggle="pill" data-bs-target="#trending" type="button" role="tab"
+                    style="font-size: 0.75rem;">ยอดฮิต (Top 4)</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link rounded-pill px-4 py-1 small border border-secondary border-opacity-25" id="latest-tab" data-bs-toggle="pill" data-bs-target="#latest" type="button" role="tab" style="font-size: 0.75rem;">ล่าสุด (Latest 4)</button>
+                <button class="nav-link rounded-pill px-4 py-1 small border border-secondary border-opacity-25"
+                    id="latest-tab" data-bs-toggle="pill" data-bs-target="#latest" type="button" role="tab"
+                    style="font-size: 0.75rem;">ล่าสุด (Latest 4)</button>
             </li>
         </ul>
 
@@ -273,7 +279,8 @@ $top_posts = $stmt->fetchAll();
                                 <?php renderPulseCard($post); ?>
                             </div>
                         <?php endforeach; ?>
-                    <?php else: echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>'; endif; ?>
+                    <?php else:
+                        echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>'; endif; ?>
                 </div>
             </div>
             <div class="tab-pane fade" id="latest" role="tabpanel">
@@ -284,14 +291,16 @@ $top_posts = $stmt->fetchAll();
                                 <?php renderPulseCard($post); ?>
                             </div>
                         <?php endforeach; ?>
-                    <?php else: echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>'; endif; ?>
+                    <?php else:
+                        echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>'; endif; ?>
                 </div>
             </div>
         </div>
     </div>
 
     <?php
-    function renderPulseCard($post) {
+    function renderPulseCard($post)
+    {
         global $conn; // Access DB for poll info
         $display_name = !empty($post['community_name']) ? $post['community_name'] : $post['username'];
         if (empty($post['community_name']) && $post['role'] === 'musician') {
@@ -310,20 +319,22 @@ $top_posts = $stmt->fetchAll();
         $img = !empty($post['community_avatar']) ? $post['community_avatar'] : ($post['role'] === 'musician' ? $post['m_img'] : $post['e_img']);
         $avatar_src = !empty($img) && $img !== 'default_avatar.png' ? 'uploads/avatars/' . $img : 'https://ui-avatars.com/api/?name=' . urlencode($post['username']) . '&background=c471ed&color=fff';
         ?>
-        <div class="pulse-card animate__animated animate__fadeIn" 
-             style="min-width: 300px; padding: 15px; cursor: pointer;" 
-             onclick="location.href='community.php?post_id=<?php echo $post['id']; ?>#post-<?php echo $post['id']; ?>'">
+        <div class="pulse-card animate__animated animate__fadeIn" style="min-width: 300px; padding: 15px; cursor: pointer;"
+            onclick="location.href='community.php?post_id=<?php echo $post['id']; ?>#post-<?php echo $post['id']; ?>'">
             <div class="d-flex align-items-center mb-2">
-                <a href="community_profile.php?username=<?php echo htmlspecialchars($p_username); ?>" class="profile-link-img" onclick="event.stopPropagation();">
+                <a href="community_profile.php?username=<?php echo htmlspecialchars($p_username); ?>"
+                    class="profile-link-img" onclick="event.stopPropagation();">
                     <img src="<?php echo htmlspecialchars($avatar_src); ?>" class="avatar-sm shadow-sm">
                 </a>
                 <div class="overflow-hidden">
                     <h6 class="mb-0 fw-bold text-white small text-truncate" style="max-width: 150px;">
-                        <a href="community_profile.php?username=<?php echo htmlspecialchars($p_username); ?>" class="text-white text-decoration-none" onclick="event.stopPropagation();">
+                        <a href="community_profile.php?username=<?php echo htmlspecialchars($p_username); ?>"
+                            class="text-white text-decoration-none" onclick="event.stopPropagation();">
                             <?php echo htmlspecialchars($display_name); ?>
                         </a>
                     </h6>
-                    <small class="text-secondary" style="font-size: 0.6rem;">@<?php echo htmlspecialchars($p_username); ?></small>
+                    <small class="text-secondary"
+                        style="font-size: 0.6rem;">@<?php echo htmlspecialchars($p_username); ?></small>
                 </div>
                 <?php if ($post['reactions_total'] > 10): ?>
                     <span class="ms-auto badge bg-danger" style="font-size: 0.5rem;"><i class="fas fa-fire"></i></span>
@@ -335,40 +346,53 @@ $top_posts = $stmt->fetchAll();
                 <?php if ($post['feeling'] || $post['location']): ?>
                     <div class="d-flex flex-wrap gap-1 mb-2">
                         <?php if ($post['feeling']): ?>
-                            <span class="badge bg-dark text-warning border border-warning" style="font-size: 0.55rem; padding: 2px 8px;"><i class="fas fa-smile me-1"></i><?php echo htmlspecialchars($post['feeling']); ?></span>
+                            <span class="badge bg-dark text-warning border border-warning"
+                                style="font-size: 0.55rem; padding: 2px 8px;"><i
+                                    class="fas fa-smile me-1"></i><?php echo htmlspecialchars($post['feeling']); ?></span>
                         <?php endif; ?>
                         <?php if ($post['location']): ?>
-                            <span class="badge bg-dark text-danger border border-danger" style="font-size: 0.55rem; padding: 2px 8px;"><i class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($post['location']); ?></span>
+                            <span class="badge bg-dark text-danger border border-danger"
+                                style="font-size: 0.55rem; padding: 2px 8px;"><i
+                                    class="fas fa-map-marker-alt me-1"></i><?php echo htmlspecialchars($post['location']); ?></span>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
-                <p class="text-light opacity-75 mb-2" style="font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                <p class="text-light opacity-75 mb-2"
+                    style="font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                     <?php echo htmlspecialchars($post['content']); ?>
                 </p>
 
                 <?php if ($post['type'] === 'image' && $post['media_url']): ?>
                     <div class="rounded-3 overflow-hidden mb-2" style="height: 120px;">
-                        <img src="uploads/community/<?php echo $post['media_url']; ?>" class="w-100 h-100" style="object-fit: cover;">
+                        <img src="uploads/community/<?php echo $post['media_url']; ?>" class="w-100 h-100"
+                            style="object-fit: cover;">
                     </div>
                 <?php elseif ($post['type'] === 'video' && $post['media_url']): ?>
-                    <div class="rounded-3 overflow-hidden mb-2 bg-black d-flex align-items-center justify-content-center" style="height: 120px;">
+                    <div class="rounded-3 overflow-hidden mb-2 bg-black d-flex align-items-center justify-content-center"
+                        style="height: 120px;">
                         <i class="fas fa-play-circle text-white fa-2x opacity-50"></i>
                     </div>
                 <?php elseif ($post['type'] === 'poll' && $post['poll_question']): ?>
                     <div class="p-2 border border-secondary rounded-3 bg-dark bg-opacity-25 mb-2">
-                        <small class="text-info fw-bold" style="font-size: 0.65rem;"><i class="fas fa-poll me-1"></i>POLL</small>
-                        <div class="text-white small text-truncate mt-1" style="font-size: 0.75rem;"><?php echo htmlspecialchars($post['poll_question']); ?></div>
+                        <small class="text-info fw-bold" style="font-size: 0.65rem;"><i
+                                class="fas fa-poll me-1"></i>POLL</small>
+                        <div class="text-white small text-truncate mt-1" style="font-size: 0.75rem;">
+                            <?php echo htmlspecialchars($post['poll_question']); ?></div>
                     </div>
                 <?php endif; ?>
             </div>
 
-            <div class="pulse-footer d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-10">
+            <div
+                class="pulse-footer d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-10">
                 <div class="d-flex gap-2 small" style="font-size: 0.7rem;">
-                    <span class="text-secondary"><i class="fas fa-heart text-danger me-1"></i> <?php echo $post['reactions_total']; ?></span>
-                    <span class="text-secondary"><i class="fas fa-comment text-primary me-1"></i> <?php echo $post['comments_total']; ?></span>
+                    <span class="text-secondary"><i class="fas fa-heart text-danger me-1"></i>
+                        <?php echo $post['reactions_total']; ?></span>
+                    <span class="text-secondary"><i class="fas fa-comment text-primary me-1"></i>
+                        <?php echo $post['comments_total']; ?></span>
                 </div>
-                <small class="text-secondary" style="font-size: 0.6rem;"><?php echo date('d M, H:i', strtotime($post['created_at'])); ?></small>
+                <small class="text-secondary"
+                    style="font-size: 0.6rem;"><?php echo date('d M, H:i', strtotime($post['created_at'])); ?></small>
             </div>
         </div>
         <?php
