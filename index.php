@@ -91,23 +91,12 @@ $top_posts = $stmt->fetchAll();
         <div class="animate__animated animate__zoomIn">
             <form action="search.php" method="GET" class="mixer-search">
                 <i class="fas fa-search text-secondary me-3"></i>
-                <input type="text" name="q" placeholder="ค้นหาศิลปิน, วงดนตรี หรือแนวเพลงที่คุณชอบ...">
+                <input type="text" name="artist_name" placeholder="ค้นหาศิลปิน, วงดนตรี หรือแนวเพลงที่คุณชอบ...">
                 <button type="submit" class="search-btn">
                     <i class="fas fa-play"></i>
                 </button>
             </form>
-            <div class="mt-4 d-flex justify-content-center gap-2 flex-wrap">
-                <a href="search.php?q=Jazz"
-                    class="badge rounded-pill bg-dark border border-secondary px-3 py-2 text-muted text-decoration-none hover-glow">Jazz</a>
-                <a href="search.php?q=Rock"
-                    class="badge rounded-pill bg-dark border border-secondary px-3 py-2 text-muted text-decoration-none hover-glow">Rock</a>
-                <a href="search.php?q=Acoustic"
-                    class="badge rounded-pill bg-dark border border-secondary px-3 py-2 text-muted text-decoration-none hover-glow">Acoustic</a>
-                <a href="search.php?q=Pop"
-                    class="badge rounded-pill bg-dark border border-secondary px-3 py-2 text-muted text-decoration-none hover-glow">Pop</a>
-                <a href="search.php?q=EDM"
-                    class="badge rounded-pill bg-dark border border-secondary px-3 py-2 text-muted text-decoration-none hover-glow">EDM</a>
-            </div>
+            
         </div>
     </div>
 </div>

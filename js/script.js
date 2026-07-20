@@ -665,3 +665,237 @@ function showReactions(id, type) {
         modalBody.innerHTML = html;
     });
 }
+
+// =========================================
+// SEARCH PAGE SCRIPTS
+// =========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle Price Slider Desktop
+    const priceSlider = document.getElementById('priceSlider');
+    const priceValue = document.getElementById('priceValue');
+    
+    if(priceSlider && priceValue) {
+        priceSlider.addEventListener('input', function() {
+            priceValue.textContent = parseInt(this.value).toLocaleString();
+        });
+        // Init format
+        priceValue.textContent = parseInt(priceSlider.value).toLocaleString();
+    }
+
+    // Handle Price Slider Mobile
+    const priceSliderMob = document.getElementById('priceSliderMob');
+    const priceValueMob = document.getElementById('priceValueMob');
+    
+    if(priceSliderMob && priceValueMob) {
+        priceSliderMob.addEventListener('input', function() {
+            priceValueMob.textContent = parseInt(this.value).toLocaleString();
+        });
+        // Init format
+        priceValueMob.textContent = parseInt(priceSliderMob.value).toLocaleString();
+    }
+});
+
+/* =========================================
+   MULTI-STEP FORM WIZARD & BECOME MUSICIAN
+   ========================================= */
+let currentStep = 1;
+const totalSteps = 4;
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        if (!validateStep(currentStep)) return;
+        
+        document.getElementById('step' + currentStep).classList.remove('active');
+        document.getElementById('indicator' + currentStep).classList.add('completed');
+        document.getElementById('indicator' + currentStep).classList.remove('active');
+        
+        currentStep++;
+        
+        document.getElementById('step' + currentStep).classList.add('active');
+        document.getElementById('indicator' + currentStep).classList.add('active');
+        updateProgressBar();
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        document.getElementById('step' + currentStep).classList.remove('active');
+        document.getElementById('indicator' + currentStep).classList.remove('active');
+        
+        currentStep--;
+        
+        document.getElementById('step' + currentStep).classList.add('active');
+        document.getElementById('indicator' + currentStep).classList.remove('completed');
+        updateProgressBar();
+    }
+}
+
+function updateProgressBar() {
+    const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+    const bar = document.getElementById('wizardProgressBar');
+    if (bar) bar.style.width = progress + '%';
+}
+
+function validateStep(step) {
+    // Basic required field validation per step
+    const currentStepDiv = document.getElementById('step' + step);
+    const requiredInputs = currentStepDiv.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredInputs.forEach(input => {
+        if (!input.value) {
+            isValid = false;
+            input.classList.add('is-invalid');
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+
+    if (!isValid && typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    }
+
+    return isValid;
+}
+
+// Preview Profile Image
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('profile_preview');
+            if (preview) preview.src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Band Fields Logic
+function toggleBandFields() {
+    const isSolo = document.getElementById('type_solo') && document.getElementById('type_solo').checked;
+    const soloFields = document.getElementById('solo_fields');
+    const bandFields = document.getElementById('band_fields');
+    
+    if (soloFields && bandFields) {
+        if (isSolo) {
+            soloFields.style.display = 'block';
+            bandFields.style.display = 'none';
+        } else {
+            soloFields.style.display = 'none';
+            bandFields.style.display = 'block';
+        }
+    }
+}
+
+function addMemberField() {
+    const container = document.getElementById('members_container');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'row mb-3 member-row animate__animated animate__fadeIn';
+    row.innerHTML = `
+        <div class="col-md-4"><input type="text" class="form-control bg-dark border-secondary text-white" name="member_name[]" placeholder="ชื่อ-นามสกุล"></div>
+        <div class="col-md-3"><input type="number" class="form-control bg-dark border-secondary text-white" name="member_age[]" placeholder="อายุ" min="1"></div>
+        <div class="col-md-4"><input type="text" class="form-control bg-dark border-secondary text-white" name="member_instruments[]" placeholder="เครื่องดนตรี"></div>
+        <div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button></div>
+    `;
+    container.appendChild(row);
+}
+
+// Basic Calendar Logic for Musician Onboarding
+let calendarData = [];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+function renderCalendar() {
+    const calendarGrid = document.getElementById('calendarGrid');
+    const currentMonthLabel = document.getElementById('currentMonthLabel');
+    if (!calendarGrid || !currentMonthLabel) return;
+    
+    calendarGrid.innerHTML = '';
+    
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+    currentMonthLabel.innerText = `${monthNames[currentMonth]} ${currentYear + 543}`;
+    
+    // Empty days
+    for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'neon-calendar-day text-muted';
+        calendarGrid.appendChild(emptyCell);
+    }
+    
+    // Days
+    for (let i = 1; i <= daysInMonth; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'neon-calendar-day cursor-pointer';
+        cell.innerText = i;
+        
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        cell.setAttribute('data-date', dateStr);
+        
+        // Check if selected
+        if (calendarData.some(item => item.date === dateStr)) {
+            cell.classList.add('active-slot');
+        }
+        
+        cell.onclick = () => toggleCalendarDay(dateStr);
+        calendarGrid.appendChild(cell);
+    }
+}
+
+function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    } else if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+}
+
+function toggleCalendarDay(dateStr) {
+    const existingIndex = calendarData.findIndex(item => item.date === dateStr);
+    
+    if (existingIndex > -1) {
+        calendarData.splice(existingIndex, 1);
+        updateCalendarDayCell(dateStr, false);
+    } else {
+        // Default time 18:00 - 23:00 for new slots
+        calendarData.push({
+            date: dateStr,
+            start: '18:00',
+            end: '23:00'
+        });
+        updateCalendarDayCell(dateStr, true);
+    }
+    saveCalendarJSON();
+}
+
+function updateCalendarDayCell(dateStr, isActive) {
+    const cell = document.querySelector(`.neon-calendar-day[data-date="${dateStr}"]`);
+    if (cell) {
+        if (isActive) {
+            cell.classList.add('active-slot');
+        } else {
+            cell.classList.remove('active-slot');
+        }
+    }
+}
+
+function saveCalendarJSON() {
+    const jsonField = document.getElementById('availability_calendar_json');
+    if (jsonField) {
+        jsonField.value = JSON.stringify(calendarData, null, 2);
+    }
+}

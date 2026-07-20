@@ -68,17 +68,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_review']) && $r
     $rating = $_POST['rating'];
     $comment = $_POST['comment'];
 
-    $stmt = $conn->prepare("INSERT INTO reviews (booking_id, employer_id, musician_id, rating, comment) VALUES (?, ?, ?, ?, ?)");
-    if ($stmt->execute([$booking_id, $user_id, $musician_id, $rating, $comment])) {
-        // Update Musician Rating
-        $stmt2 = $conn->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE musician_id = ?");
-        $stmt2->execute([$musician_id]);
-        $avg = $stmt2->fetch()['avg_rating'];
+    // Check if booking is completed and belongs to this employer
+    $stmt_check = $conn->prepare("SELECT status FROM bookings WHERE id = ? AND employer_id = ?");
+    $stmt_check->execute([$booking_id, $user_id]);
+    $booking = $stmt_check->fetch();
+
+    if ($booking && $booking['status'] === 'completed') {
+        // Check if already reviewed
+        $stmt_reviewed = $conn->prepare("SELECT id FROM reviews WHERE booking_id = ?");
+        $stmt_reviewed->execute([$booking_id]);
         
-        $stmt3 = $conn->prepare("UPDATE musician_profiles SET rating_score = ? WHERE user_id = ?");
-        $stmt3->execute([$avg, $musician_id]);
-        
-        $success = "บันทึกรีวิวเรียบร้อย ขอบคุณครับ";
+        if ($stmt_reviewed->rowCount() == 0) {
+            $stmt = $conn->prepare("INSERT INTO reviews (booking_id, employer_id, musician_id, rating, comment) VALUES (?, ?, ?, ?, ?)");
+            if ($stmt->execute([$booking_id, $user_id, $musician_id, $rating, $comment])) {
+                // Update Musician Rating
+                $stmt2 = $conn->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE musician_id = ?");
+                $stmt2->execute([$musician_id]);
+                $avg = $stmt2->fetch()['avg_rating'];
+                
+                $stmt3 = $conn->prepare("UPDATE musician_profiles SET rating_score = ? WHERE user_id = ?");
+                $stmt3->execute([$avg, $musician_id]);
+                
+                $success = "บันทึกรีวิวเรียบร้อย ขอบคุณครับ";
+            } else {
+                $error = "เกิดข้อผิดพลาดในการบันทึกรีวิว";
+            }
+        } else {
+            $error = "คุณได้รีวิวงานนี้ไปแล้ว";
+        }
+    } else {
+        $error = "คุณสามารถรีวิวได้เฉพาะงานที่เสร็จสิ้นแล้วเท่านั้น";
     }
 }
 

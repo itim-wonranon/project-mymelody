@@ -421,8 +421,10 @@ if (!function_exists('get_youtube_video_id')) {
                                     <a href="booking.php?musician_id=<?php echo $musician['user_id']; ?>" id="public_booking_btn" class="btn btn-outline-info rounded-pill px-4 py-2 mt-2">
                                         <i class="fas fa-paper-plane me-2"></i>จองคิวงานในวันนี้
                                     </a>
-                                <?php else: ?>
+                                <?php elseif (!isset($_SESSION['user_id'])): ?>
                                     <a href="login.php" class="btn btn-outline-primary rounded-pill px-4 py-2 mt-2">เข้าสู่ระบบเพื่อจองงาน</a>
+                                <?php else: ?>
+                                    <p class="text-secondary small mt-3 mb-0"><i class="fas fa-info-circle me-1"></i> สิทธิ์การจองคิวงานสงวนไว้สำหรับผู้ว่าจ้างเท่านั้น</p>
                                 <?php endif; ?>
                             </div>
                         </div>

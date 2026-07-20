@@ -586,16 +586,16 @@ input[type="radio"].role-radio:checked + .role-card span {
 .login-wrapper {
     display: flex;
     flex-wrap: wrap;
-    min-height: 100vh;
+    min-height: calc(100vh - 76px);
     margin-top: -76px;
     width: 100%;
 }
 
 .login-left {
-    flex: 1.2;
+    flex: 1 1 40%;
     background: url('../images/login_bg.png') center/cover no-repeat;
     position: relative;
-    min-height: 400px;
+    min-height: 300px;
 }
 
 .login-overlay {
@@ -628,7 +628,7 @@ input[type="radio"].role-radio:checked + .role-card span {
 }
 
 .login-right {
-    flex: 1;
+    flex: 1 1 50%;
     background-color: var(--card-bg);
     display: flex;
     flex-direction: column;
@@ -636,6 +636,7 @@ input[type="radio"].role-radio:checked + .role-card span {
     position: relative;
     z-index: 10;
     box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    min-height: 700px;
 }
 
 .login-form-container {
@@ -2638,4 +2639,175 @@ input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1) brightness(100%) contrast(100%) !important;
     cursor: pointer;
+}
+
+/* =========================================
+   SEARCH PAGE CUSTOM STYLES
+   ========================================= */
+.search-sidebar {
+    background: rgba(20, 20, 25, 0.85);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    padding: 25px;
+}
+.filter-label {
+    font-weight: 600;
+    color: #a0a5b1;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.search-input {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 12px;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+}
+.search-input:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(196, 113, 237, 0.2) !important;
+}
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+.price-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+}
+.price-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--primary-color);
+}
+.artist-card {
+    background: rgba(30, 30, 35, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+.artist-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(196, 113, 237, 0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(196, 113, 237, 0.1);
+}
+.artist-avatar-wrapper {
+    position: relative;
+    z-index: 2;
+    margin: 0 auto;
+}
+.artist-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.artist-card:hover .artist-avatar {
+    border-color: var(--primary-color);
+}
+.artist-cover {
+    height: 120px;
+    background: linear-gradient(45deg, #2b1055, #7597de);
+    position: relative;
+}
+
+@media (max-width: 767.98px) {
+    .search-sidebar {
+        display: none;
+    }
+}
+
+/* =========================================
+   MULTI-STEP FORM WIZARD (become_musician)
+   ========================================= */
+.wizard-container {
+    background: #1e1e2d;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 1px solid #2a2a35;
+    position: relative;
+    overflow: hidden;
+}
+.wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    position: relative;
+}
+.wizard-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #2a2a35;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+.wizard-progress-bar {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+    transform: translateY(-50%);
+    z-index: 1;
+    transition: width 0.4s ease;
+}
+.wizard-step-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1e1e2d;
+    border: 3px solid #2a2a35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #8c8c9e;
+    z-index: 2;
+    transition: all 0.4s ease;
+}
+.wizard-step-indicator.active {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(196, 113, 237, 0.4);
+}
+.wizard-step-indicator.completed {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+.wizard-step {
+    display: none;
+    animation: fadeInStep 0.5s ease;
+}
+.wizard-step.active {
+    display: block;
+}
+@keyframes fadeInStep {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #2a2a35;
 }
