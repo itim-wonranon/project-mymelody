@@ -62,7 +62,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer') {
 
 // Handle Direct Profile Review Submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_direct_review']) && isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer') {
-    $booking_id = !empty($_POST['booking_id']) ? (int)$_POST['booking_id'] : null;
+    $booking_id = !empty($_POST['booking_id']) ? (int)$_POST['booking_id'] : ($pending_booking_id ?? null);
     $rating = (int)$_POST['rating'];
     $comment = trim($_POST['comment']);
     
@@ -113,8 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_direct_review']
             $stmtMus->execute([$musician_id]);
             $musician = $stmtMus->fetch();
             
-            // Recalculate can_review status (since they just reviewed the booking)
-            $can_review = false;
+            // Keep can_review status true for employers so they can submit ratings continuously
+            $can_review = (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer');
         }
 }
 

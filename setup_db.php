@@ -95,7 +95,7 @@ try {
     // 7. reviews table
     $sql = "CREATE TABLE IF NOT EXISTS reviews (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        booking_id INT NOT NULL,
+        booking_id INT DEFAULT NULL,
         employer_id INT NOT NULL,
         musician_id INT NOT NULL,
         rating INT NOT NULL CHECK(rating >= 1 AND rating <= 5),

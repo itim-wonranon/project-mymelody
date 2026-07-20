@@ -33,7 +33,7 @@ $notifications = $stmt->fetchAll();
 // Fetch Profile & Stats for Sidebar
 $stmt = $conn->prepare("SELECT * FROM community_profiles WHERE user_id = ?");
 $stmt->execute([$user_id]);
-$community_profile = $stmt->fetch();
+$community_profile = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
 $stmt = $conn->prepare("
     SELECT 

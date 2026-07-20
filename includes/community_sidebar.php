@@ -4,9 +4,9 @@
 <div class="community-sidebar-content">
     <div class="glass-card p-3 mb-4">
         <?php 
-        $c_avatar = $community_profile['avatar'] ?? 'default_avatar.png';
-        $c_name = $community_profile['display_name'] ?? $_SESSION['username'];
-        $c_username = $community_profile['community_username'] ?? $_SESSION['username'];
+        $c_avatar = (is_array($community_profile) && !empty($community_profile['avatar'])) ? $community_profile['avatar'] : 'default_avatar.png';
+        $c_name = (is_array($community_profile) && !empty($community_profile['display_name'])) ? $community_profile['display_name'] : ($_SESSION['username'] ?? 'User');
+        $c_username = (is_array($community_profile) && !empty($community_profile['community_username'])) ? $community_profile['community_username'] : ($_SESSION['username'] ?? 'user');
         
         $current_page = basename($_SERVER['PHP_SELF']);
         $is_profile_page = ($current_page === 'community_profile.php');

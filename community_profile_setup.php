@@ -13,7 +13,7 @@ $user_id = $_SESSION['user_id'];
 // Fetch current data
 $stmt = $conn->prepare("SELECT * FROM community_profiles WHERE user_id = ?");
 $stmt->execute([$user_id]);
-$profile = $stmt->fetch();
+$profile = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
 // Handle form submission
 $message = '';
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if ($profile) {
+    if (!empty($profile)) {
         $stmt = $conn->prepare("UPDATE community_profiles SET display_name = ?, community_username = ?, bio = ?, avatar = ?, banner = ? WHERE user_id = ?");
         $stmt->execute([$display_name, $community_username, $bio, $avatar, $banner, $user_id]);
     } else {
@@ -57,11 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Refresh data
     $stmt = $conn->prepare("SELECT * FROM community_profiles WHERE user_id = ?");
     $stmt->execute([$user_id]);
-    $profile = $stmt->fetch();
+    $profile = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-$avatar_src = ($profile['avatar'] ?? 'default_avatar.png') !== 'default_avatar.png' ? 'uploads/avatars/' . $profile['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($_SESSION['username']);
-$banner_src = $profile['banner'] ? 'uploads/banners/' . $profile['banner'] : 'https://images.unsplash.com/photo-1514525253361-bee8718a300c?w=1200&h=400&fit=crop';
+$avatar_src = (!empty($profile['avatar']) && $profile['avatar'] !== 'default_avatar.png') ? 'uploads/avatars/' . $profile['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($_SESSION['username']);
+$banner_src = !empty($profile['banner']) ? 'uploads/banners/' . $profile['banner'] : 'https://images.unsplash.com/photo-1514525253361-bee8718a300c?w=1200&h=400&fit=crop';
 ?>
 <?php include 'includes/header.php'; ?>
     <style>

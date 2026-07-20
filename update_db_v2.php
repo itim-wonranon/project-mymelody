@@ -20,6 +20,7 @@ try {
         display_name VARCHAR(100),
         community_username VARCHAR(50) UNIQUE,
         avatar VARCHAR(255) DEFAULT 'default_avatar.png',
+        banner VARCHAR(255) DEFAULT NULL,
         bio TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
