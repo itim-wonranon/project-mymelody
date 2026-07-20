@@ -83,7 +83,7 @@ $top_posts = $stmt->fetchAll();
 <div class="hero-section" style="background-image: url('images/hero_bg.png');">
     <div class="hero-overlay"></div>
     <div class="hero-content container text-center py-5">
-        <h1 class="display-title text-white mb-2 animate__animated animate__fadeInDown">MY MELODYyyy</h1>
+        <h1 class="display-title text-white mb-2 animate__animated animate__fadeInDown">MY MELODY</h1>
         <p class="fs-4 text-gradient mb-5 animate__animated animate__fadeInUp">Crafting the perfect stage for every
             talent</p>
 
@@ -280,7 +280,8 @@ $top_posts = $stmt->fetchAll();
                             </div>
                         <?php endforeach; ?>
                     <?php else:
-                        echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>'; endif; ?>
+                        echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>';
+                    endif; ?>
                 </div>
             </div>
             <div class="tab-pane fade" id="latest" role="tabpanel">
@@ -292,7 +293,8 @@ $top_posts = $stmt->fetchAll();
                             </div>
                         <?php endforeach; ?>
                     <?php else:
-                        echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>'; endif; ?>
+                        echo '<div class="col-12 text-muted small text-center py-4">ยังไม่มีข้อมูล</div>';
+                    endif; ?>
                 </div>
             </div>
         </div>
@@ -378,7 +380,8 @@ $top_posts = $stmt->fetchAll();
                         <small class="text-info fw-bold" style="font-size: 0.65rem;"><i
                                 class="fas fa-poll me-1"></i>POLL</small>
                         <div class="text-white small text-truncate mt-1" style="font-size: 0.75rem;">
-                            <?php echo htmlspecialchars($post['poll_question']); ?></div>
+                            <?php echo htmlspecialchars($post['poll_question']); ?>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
