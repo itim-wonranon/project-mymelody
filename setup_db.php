@@ -12,7 +12,8 @@ try {
     $conn->exec($sql);
     echo "Database created successfully\n";
     
-    $conn->exec("USE musician_db");
+    $conn = new PDO("mysql:host=$servername;dbname=musician_db;charset=utf8mb4", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // 1. users table
     $sql = "CREATE TABLE IF NOT EXISTS users (
