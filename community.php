@@ -529,7 +529,10 @@ window.addEventListener('load', () => {
 });
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php 
+$hide_footer = true;
+include 'includes/footer.php'; 
+?>
 
 <!-- Reactions Modal -->
 <div class="modal fade" id="reactionsModal" tabindex="-1" aria-hidden="true">

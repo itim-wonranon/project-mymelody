@@ -23,5 +23,5 @@ date_default_timezone_set('Asia/Bangkok');
     <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
-<?php include 'navbar.php'; ?>
+<?php if (!isset($hide_navbar) || !$hide_navbar) include 'navbar.php'; ?>
 <div class="main-content">

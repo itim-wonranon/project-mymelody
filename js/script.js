@@ -670,28 +670,28 @@ function showReactions(id, type) {
 // SEARCH PAGE SCRIPTS
 // =========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle Price Slider Desktop
-    const priceSlider = document.getElementById('priceSlider');
-    const priceValue = document.getElementById('priceValue');
+    // Handle Rating Slider Desktop
+    const ratingSlider = document.getElementById('ratingSlider');
+    const ratingValue = document.getElementById('ratingValue');
     
-    if(priceSlider && priceValue) {
-        priceSlider.addEventListener('input', function() {
-            priceValue.textContent = parseInt(this.value).toLocaleString();
+    if(ratingSlider && ratingValue) {
+        ratingSlider.addEventListener('input', function() {
+            ratingValue.textContent = parseFloat(this.value).toFixed(1);
         });
         // Init format
-        priceValue.textContent = parseInt(priceSlider.value).toLocaleString();
+        ratingValue.textContent = parseFloat(ratingSlider.value).toFixed(1);
     }
 
-    // Handle Price Slider Mobile
-    const priceSliderMob = document.getElementById('priceSliderMob');
-    const priceValueMob = document.getElementById('priceValueMob');
+    // Handle Rating Slider Mobile (if applicable in the future)
+    const ratingSliderMob = document.getElementById('ratingSliderMob');
+    const ratingValueMob = document.getElementById('ratingValueMob');
     
-    if(priceSliderMob && priceValueMob) {
-        priceSliderMob.addEventListener('input', function() {
-            priceValueMob.textContent = parseInt(this.value).toLocaleString();
+    if(ratingSliderMob && ratingValueMob) {
+        ratingSliderMob.addEventListener('input', function() {
+            ratingValueMob.textContent = parseFloat(this.value).toFixed(1);
         });
         // Init format
-        priceValueMob.textContent = parseInt(priceSliderMob.value).toLocaleString();
+        ratingValueMob.textContent = parseFloat(ratingSliderMob.value).toFixed(1);
     }
 });
 

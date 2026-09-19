@@ -58,7 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-<?php include 'includes/header.php'; ?>
+<?php 
+$hide_navbar = true;
+include 'includes/header.php'; 
+?>
 
 <!-- custom full-screen login container -->
 <div class="login-wrapper">
@@ -70,16 +73,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <p class="login-subtitle mt-3">เริ่มต้นเส้นทางดนตรีของคุณ สมัครสมาชิกเพื่อค้นหาโอกาสสำหรับตัวคุณ</p>
         </div>
     </div>
-    <div class="login-right py-4">
+    <div class="login-right">
         <div class="login-form-container" style="max-width: 500px;">
-            <div class="text-center mb-4">
-                <div class="mb-3 d-inline-block p-3 rounded-circle"
+            <div class="text-center mb-2">
+                <div class="mb-1 d-inline-block p-2 rounded-circle"
                     style="background: rgba(196, 113, 237, 0.1); border: 1px solid rgba(196, 113, 237, 0.2);">
                     <i class="fas fa-user-plus text-primary"
-                        style="font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(196, 113, 237, 0.5));"></i>
+                        style="font-size: 1.5rem; filter: drop-shadow(0 0 10px rgba(196, 113, 237, 0.5));"></i>
                 </div>
-                <h2 class="fw-bold fs-2">สมัครสมาชิก</h2>
-                <p class="text-secondary mt-1">กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีใหม่</p>
+                <h2 class="fw-bold fs-4 mb-0">สมัครสมาชิก</h2>
+                <p class="text-secondary small mb-0">กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีใหม่</p>
             </div>
 
             <?php if ($error): ?>
@@ -93,16 +96,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <form method="POST" action="register.php" class="mt-2">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="first_name" class="form-label text-secondary fw-semibold">ชื่อจริง</label>
+                    <div class="col-md-6 mb-2">
+                        <label for="first_name" class="form-label text-secondary fw-semibold mb-1">ชื่อจริง</label>
                         <div class="input-group login-input-group">
                             <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                             <input type="text" class="form-control" id="first_name" name="first_name"
                                 placeholder="ชื่อจริง" required>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="last_name" class="form-label text-secondary fw-semibold">นามสกุล</label>
+                    <div class="col-md-6 mb-2">
+                        <label for="last_name" class="form-label text-secondary fw-semibold mb-1">นามสกุล</label>
                         <div class="input-group login-input-group">
                             <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                             <input type="text" class="form-control" id="last_name" name="last_name"
@@ -111,8 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="username" class="form-label text-secondary fw-semibold">ชื่อผู้ใช้งาน</label>
+                <div class="mb-2">
+                    <label for="username" class="form-label text-secondary fw-semibold mb-1">ชื่อผู้ใช้งาน</label>
                     <div class="input-group login-input-group">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
                         <input type="text" class="form-control" id="username" name="username"
@@ -120,8 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="email" class="form-label text-secondary fw-semibold">อีเมล</label>
+                <div class="mb-2">
+                    <label for="email" class="form-label text-secondary fw-semibold mb-1">อีเมล</label>
                     <div class="input-group login-input-group">
                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                         <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com"
@@ -129,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="phone" class="form-label text-secondary fw-semibold">เบอร์โทรศัพท์</label>
+                <div class="mb-2">
+                    <label for="phone" class="form-label text-secondary fw-semibold mb-1">เบอร์โทรศัพท์</label>
                     <div class="input-group login-input-group">
                         <span class="input-group-text"><i class="fas fa-phone"></i></span>
                         <input type="tel" class="form-control" id="phone" name="phone" placeholder="08x-xxx-xxxx"
@@ -140,16 +143,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="password" class="form-label text-secondary fw-semibold">รหัสผ่าน</label>
+                        <label for="password" class="form-label text-secondary fw-semibold mb-1">รหัสผ่าน</label>
                         <div class="input-group login-input-group">
                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
                             <input type="password" class="form-control" id="password" name="password"
                                 placeholder="••••••••" required>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 mb-3">
                         <label for="confirm_password"
-                            class="form-label text-secondary fw-semibold">ยืนยันรหัสผ่าน</label>
+                            class="form-label text-secondary fw-semibold mb-1">ยืนยันรหัสผ่าน</label>
                         <div class="input-group login-input-group">
                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
                             <input type="password" class="form-control" id="confirm_password" name="confirm_password"
@@ -158,8 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
 
-                <div class="d-grid mb-4">
-                    <button type="submit" class="btn btn-primary btn-lg rounded-pill glow-btn fw-bold py-2">ลงทะเบียน <i
+                <div class="d-grid mb-2">
+                    <button type="submit" class="btn btn-primary py-2 rounded-pill glow-btn fw-bold">ลงทะเบียน <i
                             class="fas fa-arrow-right ms-2"></i></button>
                 </div>
             </form>

@@ -37,7 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-<?php include 'includes/header.php'; ?>
+<?php 
+$hide_navbar = true;
+include 'includes/header.php'; 
+?>
 
 <!-- custom full-screen login container -->
 <div class="login-wrapper">
@@ -95,10 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 
                 <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label for="password" class="form-label text-secondary fw-semibold mb-0">รหัสผ่าน</label>
-                        <a href="#" class="text-primary small text-decoration-none hover-glow">ลืมรหัสผ่าน?</a>
-                    </div>
+                    <label for="password" class="form-label text-secondary fw-semibold">รหัสผ่าน</label>
                     <div class="input-group login-input-group">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                         <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>

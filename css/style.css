@@ -586,7 +586,7 @@ input[type="radio"].role-radio:checked + .role-card span {
 .login-wrapper {
     display: flex;
     flex-wrap: wrap;
-    min-height: calc(100vh - 76px);
+    min-height: 100vh;
     margin-top: -76px;
     width: 100%;
 }
@@ -608,7 +608,7 @@ input[type="radio"].role-radio:checked + .role-card span {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: calc(4rem + 76px) 4rem 4rem;
+    padding: 4rem;
     color: white;
 }
 
@@ -621,9 +621,9 @@ input[type="radio"].role-radio:checked + .role-card span {
 }
 
 .login-subtitle {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: rgba(255, 255, 255, 0.85);
-    max-width: 80%;
+    max-width: 100%;
     line-height: 1.6;
 }
 
@@ -632,11 +632,12 @@ input[type="radio"].role-radio:checked + .role-card span {
     background-color: var(--card-bg);
     display: flex;
     flex-direction: column;
-    padding: calc(3rem + 76px) 3rem 3rem;
+    justify-content: center;
+    padding: 1.5rem 3rem;
     position: relative;
     z-index: 10;
     box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-    min-height: 700px;
+    min-height: 100vh;
 }
 
 .login-form-container {

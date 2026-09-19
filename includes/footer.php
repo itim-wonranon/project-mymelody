@@ -1,5 +1,11 @@
 </div> <!-- End main-content -->
-<?php if (!isset($hide_footer) || !$hide_footer): ?>
+<?php 
+$current_page = basename($_SERVER['PHP_SELF']);
+if ($current_page !== 'index.php') {
+    $hide_footer = true;
+}
+if (!isset($hide_footer) || !$hide_footer): 
+?>
     <footer class="footer mt-auto pt-5 pb-4 border-top border-secondary"
         style="background-color: #0b0b0f; border-color: rgba(255,255,255,0.05) !important;">
         <div class="container">
