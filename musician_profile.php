@@ -125,6 +125,16 @@ $availability_days = json_decode($musician['availability_days'], true) ?? [];
 $availability_times = json_decode($musician['availability_times'], true) ?? [];
 $location_str = empty($work_areas) ? 'ไม่ได้ระบุพื้นที่' : implode(', ', $work_areas);
 
+// Fetch confirmed and completed bookings for this musician to block out dates
+$stmt_bookings = $conn->prepare("SELECT booking_date, status FROM bookings WHERE musician_id = ? AND status IN ('confirmed', 'completed')");
+$stmt_bookings->execute([$musician_id]);
+$booked_dates_raw = $stmt_bookings->fetchAll(PDO::FETCH_ASSOC);
+
+$booked_dates = [];
+foreach ($booked_dates_raw as $b) {
+    $booked_dates[$b['booking_date']] = $b['status'];
+}
+
 // PHP helper to extract YouTube ID
 if (!function_exists('get_youtube_video_id')) {
     function get_youtube_video_id($url) {
@@ -349,26 +359,51 @@ if (!function_exists('get_youtube_video_id')) {
                 <div class="d-flex flex-column gap-3">
                     <?php if (count($reviews) > 0): ?>
                         <?php foreach ($reviews as $review): ?>
-                            <div class="p-3 bg-dark bg-opacity-25 border border-secondary border-opacity-15 rounded-4 animate__animated animate__fadeIn">
-                                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-user-circle text-cyan me-2.5 fa-lg"></i>
-                                        <strong class="text-light"><?php echo htmlspecialchars($review['employer_name']); ?></strong>
-                                        <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-20 ms-2 rounded-pill small" style="font-size: 0.7rem; font-weight: bold;">
-                                            <i class="fas fa-check-circle me-1.5"></i> ผู้ว่าจ้างจริง
-                                        </span>
+                            <div class="review-card p-4 rounded-4 mb-3 position-relative overflow-hidden" style="background: linear-gradient(145deg, rgba(30, 30, 40, 0.6) 0%, rgba(15, 15, 20, 0.8) 100%); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px);">
+                                <!-- Top decorative glow -->
+                                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 10% 10%, rgba(0, 240, 255, 0.05) 0%, transparent 60%); pointer-events: none;"></div>
+                                
+                                <div class="d-flex justify-content-between align-items-start mb-3 position-relative z-index-1">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <!-- User Avatar -->
+                                        <div class="avatar-wrapper rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 45px; height: 45px; background: linear-gradient(135deg, #0D8ABC, #00f0ff); padding: 2px; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);">
+                                            <div class="w-100 h-100 rounded-circle d-flex align-items-center justify-content-center bg-dark text-white fw-bold fs-5">
+                                                <?php echo strtoupper(substr($review['employer_name'], 0, 1)); ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- User Info -->
+                                        <div>
+                                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                <h6 class="mb-0 text-white fw-bold" style="letter-spacing: 0.5px;"><?php echo htmlspecialchars($review['employer_name']); ?></h6>
+                                                <span class="badge rounded-pill d-flex align-items-center px-2 py-1" style="background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.4); color: #2ecc71; font-size: 0.65rem; font-weight: 600; box-shadow: 0 0 10px rgba(46, 204, 113, 0.1);">
+                                                    <i class="fas fa-check-circle me-1 text-success"></i> จ้างงานจริง
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- Stars -->
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="star-rating d-flex gap-1" style="font-size: 0.9rem; color: #f1c40f; filter: drop-shadow(0 0 5px rgba(241, 196, 15, 0.5));">
+                                                    <?php 
+                                                    for ($i = 1; $i <= 5; $i++) {
+                                                        if ($review['rating'] >= $i) echo '<i class="fas fa-star"></i>';
+                                                        else echo '<i class="far fa-star text-secondary opacity-50"></i>';
+                                                    }
+                                                    ?>
+                                                </div>
+                                                <span class="text-secondary opacity-75" style="font-size: 0.75rem;">•</span>
+                                                <span class="text-secondary opacity-75" style="font-size: 0.75rem;"><?php echo date('d M Y', strtotime($review['created_at'])); ?></span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span class="text-secondary small"><?php echo date('d M Y', strtotime($review['created_at'])); ?></span>
                                 </div>
-                                <div class="star-rating mb-2" style="font-size: 0.85rem; color: #f1c40f; filter: drop-shadow(0 0 4px rgba(241, 196, 15, 0.4));">
-                                    <?php 
-                                    for ($i = 1; $i <= 5; $i++) {
-                                        if ($review['rating'] >= $i) echo '<i class="fas fa-star me-0.5"></i>';
-                                        else echo '<i class="far fa-star me-0.5"></i>';
-                                    }
-                                    ?>
+                                
+                                <!-- Review Comment -->
+                                <div class="review-content position-relative z-index-1 ps-1">
+                                    <p class="mb-0 text-light" style="line-height: 1.6; font-size: 0.95rem; font-weight: 300;">
+                                        <?php echo nl2br(htmlspecialchars($review['comment'])); ?>
+                                    </p>
                                 </div>
-                                <p class="mb-0 text-secondary small" style="line-height: 1.5;"><?php echo nl2br(htmlspecialchars($review['comment'])); ?></p>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -413,19 +448,22 @@ if (!function_exists('get_youtube_video_id')) {
                             </div>
                             
                             <div id="public_date_info" style="display: none;" class="animate__animated animate__fadeIn">
-                                <span class="badge text-white px-3 py-2 rounded-pill fw-bold mb-4" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); font-size: 0.85rem;">
+                                <span id="public_date_badge" class="badge text-white px-3 py-2 rounded-pill fw-bold mb-4" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); font-size: 0.85rem;">
                                     <i class="fas fa-check-circle me-2 animate__pulse"></i> ศิลปินว่างรับงาน
                                 </span>
                                 <h3 class="text-white fw-bold mb-4" id="public_selected_date_label">วันที่...</h3>
-                                <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer'): ?>
-                                    <a href="booking.php?musician_id=<?php echo $musician['user_id']; ?>" id="public_booking_btn" class="btn btn-outline-info rounded-pill px-4 py-2 mt-2">
-                                        <i class="fas fa-paper-plane me-2"></i>จองคิวงานในวันนี้
-                                    </a>
-                                <?php elseif (!isset($_SESSION['user_id'])): ?>
-                                    <a href="login.php" class="btn btn-outline-primary rounded-pill px-4 py-2 mt-2">เข้าสู่ระบบเพื่อจองงาน</a>
-                                <?php else: ?>
-                                    <p class="text-secondary small mt-3 mb-0"><i class="fas fa-info-circle me-1"></i> สิทธิ์การจองคิวงานสงวนไว้สำหรับผู้ว่าจ้างเท่านั้น</p>
-                                <?php endif; ?>
+                                
+                                <div id="public_booking_actions">
+                                    <?php if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'employer'): ?>
+                                        <a href="booking.php?musician_id=<?php echo $musician['user_id']; ?>" id="public_booking_btn" class="btn btn-outline-info rounded-pill px-4 py-2 mt-2">
+                                            <i class="fas fa-paper-plane me-2"></i>จองคิวงานในวันนี้
+                                        </a>
+                                    <?php elseif (!isset($_SESSION['user_id'])): ?>
+                                        <a href="login.php" class="btn btn-outline-primary rounded-pill px-4 py-2 mt-2">เข้าสู่ระบบเพื่อจองงาน</a>
+                                    <?php else: ?>
+                                        <p class="text-secondary small mt-3 mb-0"><i class="fas fa-info-circle me-1"></i> สิทธิ์การจองคิวงานสงวนไว้สำหรับผู้ว่าจ้างเท่านั้น</p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -529,8 +567,8 @@ if (!function_exists('get_youtube_video_id')) {
                                     
                                     <!-- Card Info Body -->
                                     <div class="card-body p-4 d-flex flex-column justify-content-between flex-grow-1">
-                                        <div>
-                                            <p class="card-text text-light small mb-3" style="line-height: 1.5; font-size: 0.9rem;">
+                                        <div style="max-height: 120px; overflow-y: auto; padding-right: 5px;" class="mb-3">
+                                            <p class="card-text text-light small mb-0" style="line-height: 1.5; font-size: 0.9rem;">
                                                 <?php echo htmlspecialchars($item['description'] ?: 'ไม่มีคำอธิบายผลงาน'); ?>
                                             </p>
                                         </div>
@@ -561,6 +599,7 @@ if (!function_exists('get_youtube_video_id')) {
 <script>
 // PUBLIC NEON CALENDAR STATE ENGINE
 let publicCalendarData = <?php echo json_encode($availability_list, JSON_UNESCAPED_UNICODE); ?>;
+let publicBookedDates = <?php echo json_encode($booked_dates, JSON_UNESCAPED_UNICODE); ?>;
 let pubYear, pubMonth;
 let pubSelectedDateStr = null;
 
@@ -611,8 +650,37 @@ function renderPublicCalendar() {
 
         // Highlight available slots
         const slot = publicCalendarData.find(item => item.date === dateStr);
+        const bookingStatus = publicBookedDates[dateStr];
+        
         if (slot) {
             dayDiv.classList.add('active-slot');
+        }
+        
+        if (bookingStatus) {
+            // Override with booked/completed styles
+            dayDiv.classList.remove('active-slot');
+            dayDiv.setAttribute('data-booked', 'true');
+            
+            const dot = document.createElement('div');
+            dot.style.width = '4px';
+            dot.style.height = '4px';
+            dot.style.borderRadius = '50%';
+            dot.style.margin = '2px auto 0';
+            
+            if (bookingStatus === 'completed') {
+                dayDiv.style.border = '1px solid rgba(46, 204, 113, 0.4)';
+                dayDiv.style.color = '#2ecc71';
+                dayDiv.style.background = 'rgba(46, 204, 113, 0.05)';
+                dot.style.background = '#2ecc71';
+                dot.style.boxShadow = '0 0 5px #2ecc71';
+            } else {
+                dayDiv.style.border = '1px solid rgba(255, 50, 50, 0.4)';
+                dayDiv.style.color = '#ff4d4d';
+                dayDiv.style.background = 'rgba(255, 0, 0, 0.05)';
+                dot.style.background = '#ff4d4d';
+                dot.style.boxShadow = '0 0 5px #ff4d4d';
+            }
+            dayDiv.appendChild(dot);
         }
 
         if (pubSelectedDateStr === dateStr) {
@@ -646,8 +714,12 @@ function selectPublicDate(dateStr, dayElement) {
     const slot = publicCalendarData.find(item => item.date === dateStr);
     const emptyPanel = document.getElementById('public_date_empty');
     const infoPanel = document.getElementById('public_date_info');
+    const badge = document.getElementById('public_date_badge');
+    const actions = document.getElementById('public_booking_actions');
+    
+    const bookingStatus = publicBookedDates[dateStr];
 
-    if (slot) {
+    if (slot || bookingStatus) {
         emptyPanel.style.display = 'none';
         infoPanel.style.display = 'block';
 
@@ -657,10 +729,28 @@ function selectPublicDate(dateStr, dayElement) {
         const d = parseInt(parts[2]);
         document.getElementById('public_selected_date_label').innerText = `${d} ${m} ${y}`;
         
-        // Prefill booking input if present
-        const bookingBtn = document.getElementById('public_booking_btn');
-        if (bookingBtn) {
-            bookingBtn.href = `booking.php?musician_id=<?php echo $musician['user_id']; ?>&date=${dateStr}`;
+        if (bookingStatus) {
+            if (bookingStatus === 'completed') {
+                badge.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                badge.innerHTML = '<i class="fas fa-check-double me-2"></i> งานแสดงเสร็จสิ้นแล้ว';
+                actions.style.display = 'block';
+            } else {
+                badge.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                badge.innerHTML = '<i class="fas fa-times-circle me-2"></i> ศิลปินติดคิวงานแล้ว';
+                actions.style.display = 'none';
+            }
+        } else {
+            badge.style.background = 'linear-gradient(135deg, var(--accent-color), var(--primary-color))';
+            badge.innerHTML = '<i class="fas fa-check-circle me-2 animate__pulse"></i> ศิลปินว่างรับงาน';
+            actions.style.display = 'block';
+        }
+        
+        // Prefill booking input if present and actions are visible
+        if (actions.style.display === 'block') {
+            const bookingBtn = document.getElementById('public_booking_btn');
+            if (bookingBtn) {
+                bookingBtn.href = `booking.php?musician_id=<?php echo $musician['user_id']; ?>&date=${dateStr}`;
+            }
         }
     } else {
         emptyPanel.style.display = 'block';

@@ -1,6 +1,14 @@
 <?php
 include 'header.php';
 
+// Check permissions
+$is_super = isset($_SESSION['is_super_admin']) && $_SESSION['is_super_admin'];
+$perms = $_SESSION['admin_permissions'] ?? [];
+if (!$is_super && !in_array('manage_verify', $perms)) {
+    echo "<div class='alert alert-danger m-4'>Access Denied. You do not have permission to view this page.</div></div></div></div></body></html>";
+    exit();
+}
+
 $success = '';
 
 // Handle Verification

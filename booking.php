@@ -12,6 +12,19 @@ $role = $_SESSION['role'];
 $success = '';
 $error = '';
 
+// Handle mark as read
+if (isset($_GET['mark_read'])) {
+    $mark_id = intval($_GET['mark_read']);
+    if ($role === 'musician') {
+        $stmt = $conn->prepare("UPDATE bookings SET is_read_musician = 1 WHERE id = ? AND musician_id = ?");
+    } else {
+        $stmt = $conn->prepare("UPDATE bookings SET is_read_employer = 1 WHERE id = ? AND employer_id = ?");
+    }
+    $stmt->execute([$mark_id, $user_id]);
+    header("Location: booking.php");
+    exit();
+}
+
 function clean_thai_time($time_str) {
     $time_str = trim($time_str);
     // Remove Thai time suffix and spaces
@@ -41,9 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_booking']) && $
     $start_time = clean_thai_time($_POST['start_time']);
     $end_time = clean_thai_time($_POST['end_time']);
     $details = $_POST['details'];
+    $contact_phone = $_POST['contact_phone'] ?? null;
 
-    $stmt = $conn->prepare("INSERT INTO bookings (employer_id, musician_id, booking_date, start_time, end_time, details) VALUES (?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$user_id, $musician_id, $booking_date, $start_time, $end_time, $details])) {
+    $stmt = $conn->prepare("INSERT INTO bookings (employer_id, musician_id, booking_date, start_time, end_time, details, contact_phone) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$user_id, $musician_id, $booking_date, $start_time, $end_time, $details, $contact_phone])) {
         $success = "ส่งคำขอจองคิวงานเรียบร้อยแล้ว กรุณารอนักดนตรียืนยัน";
     } else {
         $error = "เกิดข้อผิดพลาดในการจองคิวงาน";
@@ -54,10 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_booking']) && $
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status']) && $role === 'musician') {
     $booking_id = $_POST['booking_id'];
     $status = $_POST['status']; // confirmed, rejected, completed
+    $rejection_reason = isset($_POST['rejection_reason']) ? $_POST['rejection_reason'] : null;
 
-    $stmt = $conn->prepare("UPDATE bookings SET status = ? WHERE id = ? AND musician_id = ?");
-    if ($stmt->execute([$status, $booking_id, $user_id])) {
-        $success = "อัปเดตสถานะงานเรียบร้อย";
+    if ($status === 'rejected') {
+        $stmt = $conn->prepare("UPDATE bookings SET status = ?, rejection_reason = ?, is_read_employer = 0 WHERE id = ? AND musician_id = ?");
+        if ($stmt->execute([$status, $rejection_reason, $booking_id, $user_id])) {
+            $success = "ปฏิเสธคิวงานเรียบร้อย";
+        }
+    } else {
+        $stmt = $conn->prepare("UPDATE bookings SET status = ?, is_read_employer = 0 WHERE id = ? AND musician_id = ?");
+        if ($stmt->execute([$status, $booking_id, $user_id])) {
+            $success = "อัปเดตสถานะงานเรียบร้อย";
+        }
     }
 }
 
@@ -204,10 +226,19 @@ if ($target_musician_id && $role === 'employer') {
                             </div>
                         </div>
                     </div>
-                    <!-- Details -->
-                    <div class="mb-4">
-                        <label class="form-label text-light fw-bold" style="font-size: 0.9rem;">รายละเอียดงานแสดง / สถานที่จัดงาน / เบอร์โทรศัพท์ติดต่อ</label>
-                        <textarea class="form-control form-control-premium text-white bg-transparent border-secondary" name="details" rows="3" style="border-radius: 12px; padding: 12px;" required placeholder="กรุณาระบุรายละเอียดให้ชัดเจน (เช่น ชื่องาน, สถานที่, สไตล์เพลงที่ต้องการ, เบอร์ติดต่อกลับ) เพื่อให้นักดนตรีพิจารณาและรับงานได้รวดเร็วขึ้น"></textarea>
+                    <!-- Details and Phone -->
+                    <div class="row">
+                        <div class="col-md-8 mb-4">
+                            <label class="form-label text-light fw-bold" style="font-size: 0.9rem;">รายละเอียดงานแสดง / สถานที่จัดงาน</label>
+                            <textarea class="form-control form-control-premium text-white bg-transparent border-secondary" name="details" rows="3" style="border-radius: 12px; padding: 12px;" required placeholder="กรุณาระบุรายละเอียดให้ชัดเจน (เช่น ชื่องาน, สถานที่, สไตล์เพลงที่ต้องการ)"></textarea>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label text-light fw-bold" style="font-size: 0.9rem;">เบอร์โทรติดต่อ</label>
+                            <div class="form-input-icon-wrapper">
+                                <i class="fas fa-phone-alt text-cyan"></i>
+                                <input type="tel" class="form-control form-control-premium text-white bg-transparent border-secondary" name="contact_phone" style="border-radius: 12px; padding: 12px 12px 12px 2.75rem;" required placeholder="กรอกเบอร์โทรติดต่อกลับ" pattern="[0-9]{9,10}" title="กรุณากรอกเบอร์โทรศัพท์ 9-10 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            </div>
+                        </div>
                     </div>
                     <div class="text-end">
                         <button type="submit" class="btn btn-primary rounded-pill px-5 py-2.5 glow-btn shadow-lg" style="color: #3b0059; font-weight: bold;">
@@ -230,6 +261,7 @@ if ($target_musician_id && $role === 'employer') {
                             <th>ช่วงเวลา</th>
                             <th><?php echo $role === 'employer' ? 'ศิลปินนักดนตรี' : 'ผู้ว่าจ้าง'; ?></th>
                             <th>รายละเอียดงาน</th>
+                            <th>เบอร์โทรติดต่อ</th>
                             <th>สถานะคิวงาน</th>
                             <th class="text-end">การจัดการ</th>
                         </tr>
@@ -252,8 +284,13 @@ if ($target_musician_id && $role === 'employer') {
                                     <td>
                                         <!-- Details Modal Trigger -->
                                         <button type="button" class="btn btn-sm btn-cyber-outline btn-cyber-outline-cyan px-3 py-2" data-bs-toggle="modal" data-bs-target="#detailsModal<?php echo $b['id']; ?>">
-                                            <i class="fas fa-search me-2"></i>ดูข้อมูลงาน
+                                            <i class="fas fa-search me-1"></i> ดูข้อมูลงาน
                                         </button>
+                                    </td>
+                                    <td>
+                                        <span class="text-light" style="font-size: 0.9rem;">
+                                            <?php echo $b['contact_phone'] ? '<i class="fas fa-phone-alt text-cyan me-1"></i> ' . htmlspecialchars($b['contact_phone']) : '<span class="text-secondary">-</span>'; ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <?php 
@@ -272,12 +309,9 @@ if ($target_musician_id && $role === 'employer') {
                                                     <input type="hidden" name="status" value="confirmed">
                                                     <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-2"><i class="fas fa-check me-2"></i>รับงาน</button>
                                                 </form>
-                                                <form method="POST" action="booking.php" class="d-inline">
-                                                    <input type="hidden" name="update_status" value="1">
-                                                    <input type="hidden" name="booking_id" value="<?php echo $b['id']; ?>">
-                                                    <input type="hidden" name="status" value="rejected">
-                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 py-2"><i class="fas fa-times me-2"></i>ปฏิเสธ</button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-2" data-bs-toggle="modal" data-bs-target="#rejectModal<?php echo $b['id']; ?>">
+                                                    <i class="fas fa-times me-2"></i>ปฏิเสธ
+                                                </button>
                                             </div>
                                         <?php elseif ($role === 'musician' && $b['status'] == 'confirmed'): ?>
                                             <form method="POST" action="booking.php" class="d-inline">
@@ -342,12 +376,22 @@ if ($target_musician_id && $role === 'employer') {
                                 📅 วันที่ <?php echo date('d/m/Y', strtotime($b['booking_date'])); ?> เวลา <?php echo date('H:i', strtotime($b['start_time'])) . ' - ' . date('H:i', strtotime($b['end_time'])); ?> น.
                             </div>
                         </div>
-                        <div>
-                            <strong class="text-cyan small fw-bold d-block mb-2">รายละเอียดและสถานที่จัดงาน:</strong>
-                            <div class="bg-dark bg-opacity-40 p-3 rounded-3 border border-secondary border-opacity-10 text-white" style="white-space: pre-wrap; min-height: 80px; line-height: 1.6;">
-                                <?php echo nl2br(htmlspecialchars($b['details'])); ?>
+                        <div class="mb-4">
+                            <strong class="text-cyan small fw-bold d-block mb-2">เบอร์โทรติดต่อ:</strong>
+                            <div class="bg-dark bg-opacity-40 p-3 rounded-3 border border-secondary border-opacity-10 text-white">
+                                <i class="fas fa-phone-alt me-2"></i> <?php echo $b['contact_phone'] ? htmlspecialchars($b['contact_phone']) : '<span class="text-secondary opacity-50">ไม่มีข้อมูล</span>'; ?>
                             </div>
                         </div>
+                        <div class="mb-4">
+                            <strong class="text-cyan small fw-bold d-block mb-2">รายละเอียดและสถานที่จัดงาน:</strong>
+                            <div class="bg-dark bg-opacity-40 p-3 rounded-3 border border-secondary border-opacity-10 text-white" style="white-space: pre-wrap; min-height: 80px; max-height: 200px; overflow-y: auto; line-height: 1.6;"><?php echo htmlspecialchars($b['details']); ?></div>
+                        </div>
+                        <?php if ($b['status'] == 'rejected' && !empty($b['rejection_reason'])): ?>
+                        <div>
+                            <strong class="text-danger small fw-bold d-block mb-2">สาเหตุที่ปฏิเสธงาน:</strong>
+                            <div class="bg-danger bg-opacity-10 p-3 rounded-3 border border-danger border-opacity-25 text-danger" style="white-space: pre-wrap; max-height: 150px; overflow-y: auto; line-height: 1.6;"><?php echo htmlspecialchars($b['rejection_reason']); ?></div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     <div class="modal-footer border-top border-secondary border-opacity-15 pt-3">
                         <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
@@ -355,6 +399,40 @@ if ($target_musician_id && $role === 'employer') {
                 </div>
             </div>
         </div>
+
+        <!-- Reject Modal (Musician Only) -->
+        <?php if ($role === 'musician' && $b['status'] == 'pending'): ?>
+        <div class="modal fade" id="rejectModal<?php echo $b['id']; ?>" tabindex="-1" aria-labelledby="rejectModalLabel<?php echo $b['id']; ?>" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-card-premium border border-danger border-opacity-25 rounded-4 p-3 shadow-lg">
+                    <div class="modal-header border-bottom border-danger border-opacity-25">
+                        <h5 class="modal-title text-white fw-bold" id="rejectModalLabel<?php echo $b['id']; ?>">
+                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>ปฏิเสธคิวงาน
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="booking.php">
+                        <div class="modal-body text-start text-light py-4">
+                            <input type="hidden" name="update_status" value="1">
+                            <input type="hidden" name="booking_id" value="<?php echo $b['id']; ?>">
+                            <input type="hidden" name="status" value="rejected">
+                            
+                            <p class="mb-3 text-secondary">กรุณาระบุเหตุผลที่คุณไม่สามารถรับงานนี้ได้ (บังคับ)</p>
+                            
+                            <div class="form-input-icon-wrapper mb-3">
+                                <i class="fas fa-comment-dots text-danger"></i>
+                                <textarea class="form-control form-control-premium text-light" name="rejection_reason" rows="3" placeholder="ตัวอย่าง: คิวงานซ้อนกับงานอื่น, สถานที่ไกลเกินไป..." required style="scrollbar-color: #555566 #0b0b0f; scrollbar-width: thin;"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top border-danger border-opacity-25 pt-3">
+                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4"><i class="fas fa-times me-2"></i>ยืนยันการปฏิเสธ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Review Modal -->
         <?php if ($role === 'employer' && $b['status'] == 'completed'): ?>
@@ -380,15 +458,13 @@ if ($target_musician_id && $role === 'employer') {
                                     
                                     <div class="mb-4">
                                         <label class="form-label text-light fw-bold mb-2" style="font-size: 0.9rem;">ให้คะแนนผลงานแสดงดนตรี</label>
-                                        <div class="form-input-icon-wrapper">
-                                            <i class="fas fa-star text-warning"></i>
-                                            <select name="rating" class="form-select form-control-premium text-white bg-transparent border-0" style="padding-left: 2.75rem;" required>
-                                                <option value="5" class="bg-dark text-white">⭐⭐⭐⭐⭐ (5 ดาว - ยอดเยี่ยมที่สุด)</option>
-                                                <option value="4" class="bg-dark text-white">⭐⭐⭐⭐ (4 ดาว - ดีเยี่ยม)</option>
-                                                <option value="3" class="bg-dark text-white">⭐⭐⭐ (3 ดาว - ดีปานกลาง)</option>
-                                                <option value="2" class="bg-dark text-white">⭐⭐ (2 ดาว - พอใช้ได้)</option>
-                                                <option value="1" class="bg-dark text-white">⭐ (1 ดาว - ควรปรับปรุง)</option>
-                                            </select>
+                                        <div class="d-flex align-items-center mt-2">
+                                            <i class="fas fa-star text-warning fs-5 me-3"></i>
+                                            <input type="range" name="rating" min="0" step="0.1" max="5" value="0" class="form-range flex-grow-1" oninput="document.getElementById('ratingOutput'+this.form.booking_id.value).innerText = this.value">
+                                            <div class="ms-3 text-end text-nowrap" style="min-width: 65px;">
+                                                <span class="text-warning fw-bold fs-5" id="ratingOutput<?php echo $b['id']; ?>">0</span>
+                                                <span class="text-light ms-1">ดาว</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div>

@@ -84,9 +84,9 @@ $posts = $stmt->fetchAll();
                                         $img = $post['role'] === 'musician' ? $post['m_img'] : $post['e_img'];
                                         $img_src = !empty($img) && $img !== 'default_avatar.png' ? 'uploads/avatars/' . $img : 'https://ui-avatars.com/api/?name='.urlencode($post['username']).'&background=0D8ABC&color=fff';
                                         ?>
-                                        <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img-small me-3" alt="Profile">
+                                        <img src="<?php echo htmlspecialchars($img_src); ?>" class="profile-img-small me-3 rounded-circle" style="width: 50px; height: 50px; object-fit: cover; flex-shrink: 0;" alt="Profile">
                                         <div>
-                                            <h6 class="mb-0 fw-bold">
+                                            <h6 class="mb-0 fw-bold d-flex align-items-center flex-wrap gap-2 text-white">
                                                 <?php 
                                                 $display_name = $post['username'];
                                                 if ($post['role'] === 'musician') {
@@ -101,12 +101,12 @@ $posts = $stmt->fetchAll();
                                                         }
                                                     }
                                                 }
-                                                echo htmlspecialchars($display_name);
                                                 ?>
+                                                <span><?php echo htmlspecialchars($display_name); ?></span>
                                                 <?php if ($post['role'] === 'musician'): ?>
-                                                    <span class="badge bg-primary ms-1" style="font-size: 0.6rem;">นักดนตรี</span>
+                                                    <span class="badge bg-primary text-white" style="font-size: 0.6rem;">นักดนตรี</span>
                                                 <?php elseif ($post['role'] === 'employer'): ?>
-                                                    <span class="badge bg-success ms-1" style="font-size: 0.6rem;">ผู้ว่าจ้าง</span>
+                                                    <span class="badge bg-success text-white" style="font-size: 0.6rem;">ผู้ว่าจ้าง</span>
                                                 <?php endif; ?>
                                             </h6>
                                             <small class="text-muted"><?php echo date('d M Y, H:i', strtotime($post['created_at'])); ?></small>

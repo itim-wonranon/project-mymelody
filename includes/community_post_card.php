@@ -25,20 +25,20 @@ if (empty($post['community_name']) && $post['role'] === 'musician') {
     <!-- Post Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="d-flex align-items-center">
-            <a href="community_profile.php?username=<?php echo htmlspecialchars($post_user_username); ?>" class="profile-link-img">
-                <img src="<?php echo htmlspecialchars($post_avatar_src); ?>" class="post-input-avatar me-3 shadow-sm" style="width: 50px; height: 50px;">
+            <a href="community_profile.php?username=<?php echo htmlspecialchars($post_user_username); ?>" class="profile-link-img me-3 d-block">
+                <img src="<?php echo htmlspecialchars($post_avatar_src); ?>" class="rounded-circle shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
             </a>
             <div>
-                <h6 class="mb-0 fw-bold text-white">
-                    <a href="community_profile.php?username=<?php echo htmlspecialchars($post_user_username); ?>" class="profile-link-name">
+                <h6 class="mb-0 fw-bold text-white d-flex align-items-center flex-wrap gap-2">
+                    <a href="community_profile.php?username=<?php echo htmlspecialchars($post_user_username); ?>" class="profile-link-name text-white text-decoration-none">
                         <?php echo htmlspecialchars($post_user_display_name); ?>
                     </a>
                     <?php if ($post['role'] === 'musician'): ?>
-                        <span class="badge bg-primary ms-1" style="font-size: 0.6rem;">นักดนตรี</span>
+                        <span class="badge bg-primary text-white" style="font-size: 0.65rem;">นักดนตรี</span>
                     <?php elseif ($post['role'] === 'employer'): ?>
-                        <span class="badge bg-success ms-1" style="font-size: 0.6rem;">ผู้ว่าจ้าง</span>
+                        <span class="badge bg-success text-white" style="font-size: 0.65rem;">ผู้ว่าจ้าง</span>
                     <?php elseif ($post['role'] === 'admin'): ?>
-                        <span class="badge bg-danger ms-1" style="font-size: 0.6rem;">ผู้ดูแลระบบ</span>
+                        <span class="badge bg-danger text-white" style="font-size: 0.65rem;">ผู้ดูแลระบบ</span>
                     <?php endif; ?>
                 </h6>
                 <small class="text-secondary">@<?php echo htmlspecialchars($post_user_username); ?> • <?php echo date('d M Y, H:i', strtotime($post['created_at'])); ?></small>

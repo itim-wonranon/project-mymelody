@@ -40,9 +40,22 @@ date_default_timezone_set('Asia/Bangkok');
                 <i class="fas fa-shield-alt fa-2x mb-2 text-primary"></i>
                 <h5>Admin Panel</h5>
             </div>
+            <?php
+                $is_super = isset($_SESSION['is_super_admin']) && $_SESSION['is_super_admin'];
+                $perms = $_SESSION['admin_permissions'] ?? [];
+            ?>
+            <?php if ($is_super || in_array('view_dashboard', $perms)): ?>
             <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
+            <?php endif; ?>
+            <?php if ($is_super || in_array('manage_verify', $perms)): ?>
             <a href="verify.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'verify.php' ? 'active' : ''; ?>"><i class="fas fa-user-check me-2"></i> ยืนยันตัวตนนักดนตรี</a>
+            <?php endif; ?>
+            <?php if ($is_super || in_array('manage_disputes', $perms)): ?>
             <a href="disputes.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'disputes.php' ? 'active' : ''; ?>"><i class="fas fa-exclamation-triangle me-2"></i> แจ้งปัญหา (Disputes)</a>
+            <?php endif; ?>
+            <?php if ($is_super): ?>
+            <a href="manage_admins.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'manage_admins.php' ? 'active' : ''; ?>"><i class="fas fa-users-cog me-2"></i> จัดการผู้ดูแลระบบ</a>
+            <?php endif; ?>
             <a href="../index.php" class="mt-auto bg-dark"><i class="fas fa-globe me-2"></i> กลับไปหน้าเว็บหลัก</a>
             <a href="../logout.php" class="text-danger bg-dark border-0"><i class="fas fa-sign-out-alt me-2"></i> ออกจากระบบ</a>
         </div>

@@ -16,21 +16,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($username) || empty($password)) {
         $error = "กรุณากรอกข้อมูลให้ครบถ้วน";
     } else {
-        $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, username, password, role, is_super_admin, is_approved, admin_permissions FROM users WHERE username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-            
-            if ($user['role'] === 'admin') {
-                header("Location: admin/index.php");
+            // Check if admin is approved
+            if ($user['role'] === 'admin' && !$user['is_approved']) {
+                $error = "บัญชีผู้ดูแลระบบของคุณยังไม่ได้รับการอนุมัติ กรุณาติดต่อผู้ดูแลระบบหลัก";
             } else {
-                header("Location: index.php");
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['is_super_admin'] = $user['is_super_admin'] ? true : false;
+                
+                if ($user['role'] === 'admin') {
+                    $_SESSION['admin_permissions'] = json_decode($user['admin_permissions'], true) ?? [];
+                    header("Location: admin/index.php");
+                } else {
+                    header("Location: index.php");
+                }
+                exit();
             }
-            exit();
         } else {
             $error = "ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง";
         }

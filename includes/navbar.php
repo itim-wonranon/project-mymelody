@@ -24,11 +24,11 @@
                     <?php
                         $booking_notif_count = 0;
                         if ($_SESSION['role'] === 'musician') {
-                            $stmt_bn = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE musician_id = ? AND status = 'pending'");
+                            $stmt_bn = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE musician_id = ? AND status = 'pending' AND is_read_musician = 0");
                             $stmt_bn->execute([$_SESSION['user_id']]);
                             $booking_notif_count = $stmt_bn->fetchColumn();
                         } else if ($_SESSION['role'] === 'employer') {
-                            $stmt_bn = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE employer_id = ? AND (status = 'confirmed' OR status = 'rejected' OR status = 'completed')");
+                            $stmt_bn = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE employer_id = ? AND status IN ('confirmed', 'rejected') AND is_read_employer = 0");
                             $stmt_bn->execute([$_SESSION['user_id']]);
                             $booking_notif_count = $stmt_bn->fetchColumn();
                         }

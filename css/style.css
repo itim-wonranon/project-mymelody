@@ -2820,3 +2820,34 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     filter: invert(1) opacity(0.7);
     cursor: pointer;
 }
+
+/* Custom Scrollbar for Cyberpunk Dark Theme */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0b0b0f;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555566;
+    border-radius: 5px;
+    border: 2px solid #0b0b0f;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+::-webkit-scrollbar-corner {
+    background: #0b0b0f;
+}
+
+/* Also ensure modern scrollbars in Firefox */
+* {
+    scrollbar-color: #555566 #0b0b0f;
+    scrollbar-width: thin;
+}

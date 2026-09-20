@@ -16,7 +16,7 @@ try {
             SELECT b.*, u.username as other_name 
             FROM bookings b 
             JOIN users u ON b.employer_id = u.id 
-            WHERE b.musician_id = ? 
+            WHERE b.musician_id = ? AND b.status = 'pending' AND b.is_read_musician = 0
             ORDER BY b.created_at DESC LIMIT 5
         ");
     } else {
@@ -24,7 +24,7 @@ try {
             SELECT b.*, u.username as other_name 
             FROM bookings b 
             JOIN users u ON b.musician_id = u.id 
-            WHERE b.employer_id = ? 
+            WHERE b.employer_id = ? AND b.status IN ('confirmed', 'rejected') AND b.is_read_employer = 0
             ORDER BY b.created_at DESC LIMIT 5
         ");
     }
@@ -42,21 +42,21 @@ try {
         $bg_class = 'hover-bg-glass'; // Default background hover
         
         if ($b['status'] == 'pending') {
-            $status_badge = '<span class="badge bg-warning text-dark"><i class="fas fa-spinner fa-spin me-1"></i> รอดำเนินการ</span>';
+            $status_badge = '<span class="badge badge-neon-warning"><i class="fas fa-spinner fa-spin me-1"></i> รอดำเนินการ</span>';
             if ($role === 'musician') $bg_class = 'bg-warning bg-opacity-10'; // highlight pending for musician
         } elseif ($b['status'] == 'confirmed') {
-            $status_badge = '<span class="badge bg-cyan text-dark"><i class="fas fa-check-circle me-1"></i> ยืนยันแล้ว</span>';
-            if ($role === 'employer') $bg_class = 'bg-cyan bg-opacity-10'; // highlight confirmed for employer
+            $status_badge = '<span class="badge badge-neon-cyan"><i class="fas fa-check-circle me-1"></i> ยืนยันแล้ว</span>';
+            if ($role === 'employer') $bg_class = 'bg-info bg-opacity-10'; // highlight confirmed for employer
         } elseif ($b['status'] == 'rejected') {
-            $status_badge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> ปฏิเสธ</span>';
+            $status_badge = '<span class="badge badge-neon-danger"><i class="fas fa-times-circle me-1"></i> ปฏิเสธ</span>';
         } elseif ($b['status'] == 'completed') {
-            $status_badge = '<span class="badge bg-success"><i class="fas fa-check-double me-1"></i> เสร็จสิ้น</span>';
+            $status_badge = '<span class="badge badge-neon-success"><i class="fas fa-check-double me-1"></i> เสร็จสิ้น</span>';
         }
         
         $date_str = date('d/m/Y', strtotime($b['booking_date']));
         $time_str = date('H:i', strtotime($b['start_time'])) . ' - ' . date('H:i', strtotime($b['end_time']));
         
-        echo '<a href="booking.php" class="list-group-item list-group-item-action border-secondary border-opacity-25 text-white ' . $bg_class . '" style="background: transparent;">';
+        echo '<a href="booking.php?mark_read=' . $b['id'] . '" class="list-group-item list-group-item-action border-secondary border-opacity-25 text-white ' . $bg_class . '" style="background: transparent;">';
         echo '<div class="d-flex w-100 justify-content-between align-items-center mb-1">';
         echo '<h6 class="mb-0 fw-bold"><i class="fas fa-user-circle text-primary me-2"></i>' . htmlspecialchars($b['other_name']) . '</h6>';
         echo '<small class="text-secondary">' . date('d/m H:i', strtotime($b['created_at'])) . '</small>';

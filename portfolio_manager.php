@@ -270,8 +270,8 @@ function get_youtube_video_id($url) {
                                 
                                 <!-- Card Info Body -->
                                 <div class="card-body p-4 flex-grow-1 d-flex flex-column justify-content-between">
-                                    <div>
-                                        <p class="card-text text-light small mb-3" style="line-height: 1.5; font-size: 0.9rem;">
+                                    <div style="max-height: 120px; overflow-y: auto; padding-right: 5px;" class="mb-3">
+                                        <p class="card-text text-light small mb-0" style="line-height: 1.5; font-size: 0.9rem;">
                                             <?php echo htmlspecialchars($p['description']); ?>
                                         </p>
                                     </div>
